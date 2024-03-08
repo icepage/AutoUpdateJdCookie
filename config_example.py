@@ -1,0 +1,28 @@
+# JD用户信息
+data = {
+    "13500000000": {
+        "password": "123456",
+        "pt_pin": "123456"
+    },
+    "13500000001": {
+        "password": "123456",
+        "pt_pin": "123456"
+    },
+}
+# JD登录页
+jd_login_url = "https://plogin.m.jd.com/login/login?appid=300&returnurl=https%3A%2F%2Fwq.jd.com%2Fpassport%2FLoginRedirect%3Fstate%3D1103073577433%26returnurl%3Dhttps%253A%252F%252Fhome.m.jd.com%252FmyJd%252Fhome.action&source=wq_passport"
+
+# ql信息
+qinglong_data = {
+    "url": "http://127.0.0.1:5700/",
+    "username": "admin",
+    "password": "123456"
+}
+# 滑块距离屏幕左上角的x, y像素, 需根据自己屏幕大小调整
+slide_x_position, slide_y_position = 533, 572
+
+# 滑块验证码的偏差, 如果一直滑过了, 或滑不到, 可以调节下
+slide_difference = 10
+
+# 是否自动识别移动滑块，有时不准，就关掉吧
+auto_move = True
