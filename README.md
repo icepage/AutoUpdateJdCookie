@@ -5,7 +5,7 @@
     - 自动化获取青龙面板的失效JD_COOKIE
     - 基于失效JD_COOKIE, 自动化登录JD,包括滑块验证, 拿到key
     - 基于key, 自动化更新青龙面板的失效JD_COOKIE
-- python >= 3.7(playwright)
+- python >= 3.9 (playwright依赖的typing，在3.7和3.8会报错typing.NoReturn的BUG)
 - windows
 
 ### TODOLIST
