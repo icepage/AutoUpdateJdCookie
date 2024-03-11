@@ -1,4 +1,4 @@
-ddddocr
+ddddocr==1.4.11
 requests
 aiohttp
 playwright
