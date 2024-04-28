@@ -12,11 +12,14 @@ class QlUri(Enum):
 
 
 class QlApi(object):
-    def __init__(self, url: str, user: str, password: str):
+    def __init__(self, url: str, user: str, password: str, token: str):
         self.url = url
         self.user = user
         self.password = password
-        self.token = "Bearer " + self.login()
+        if token:
+            self.token = token
+        else:
+            self.token = "Bearer " + self.login()
         self.headers = {
             'Content-Type': 'application/json',
             'Authorization': self.token

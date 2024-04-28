@@ -93,7 +93,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[dict, None]:
 
 async def main():
     try:
-        qlapi = QlApi(qinglong_data["url"], qinglong_data["username"], qinglong_data["password"])
+        qlapi = QlApi(qinglong_data["url"], qinglong_data.get("username"), qinglong_data.get("password"), qinglong_data.get('token'))
         # 拿到禁用的用户列表
         env = await qlapi.get_envs()
         user_info = env['data']

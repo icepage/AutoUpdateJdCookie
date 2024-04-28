@@ -16,7 +16,9 @@ jd_login_url = "https://plogin.m.jd.com/login/login?appid=300&returnurl=https%3A
 qinglong_data = {
     "url": "http://127.0.0.1:5700/",
     "username": "admin",
-    "password": "123456"
+    "password": "123456",
+    # 可选参数，QL面板的sessionid，主要是避免抢占QL后台的登录。需要在浏览器上，F12上获取Authorization的请求头。如果为空或不设置则账号密码登录
+    "token": ""
 }
 # 滑块距离屏幕左上角的x, y像素, 需根据自己屏幕大小调整
 slide_x_position, slide_y_position = 533, 572
