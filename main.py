@@ -130,6 +130,13 @@ async def main():
             else:
                 logger.error(f"{user} update fail")
 
+            data = bytes(f"[{user_info['id']}]", 'utf-8')
+            response = await qlapi.envs_enable(data=data)
+            if response['code'] == 200:
+                logger.info(f"{user} envs_enable sucess")
+            else:
+                logger.error(f"{user} envs_enable fail")
+
     except Exception as e:
         traceback.print_exc()
 

@@ -9,6 +9,8 @@ logger.add("main.log", format="{time:YYYY-MM-DD HH:mm:ss} {level} {message}", le
 class QlUri(Enum):
     user_login = "api/user/login"
     envs = "api/envs"
+    envs_enable = "api/envs/enable"
+    envs_disable = "api/envs/disable"
 
 
 class QlApi(object):
@@ -60,3 +62,23 @@ class QlApi(object):
                     return data
                 else:
                     logger.error(f"Set Envs failed. Status code: {response.status}")
+
+    async def envs_enable(self, data: bytes):
+        async with aiohttp.ClientSession() as session:
+            async with session.put(f"{self.url}/{QlUri.envs_enable.value}", data=data, headers=self.headers) as response:
+                if response.status == 200:
+                    logger.info("enable Envs successful. Token obtained.")
+                    data = await response.json()
+                    return data
+                else:
+                    logger.error(f"enable Envs failed. Status code: {response.status}")
+
+    async def envs_disable(self, data: bytes):
+        async with aiohttp.ClientSession() as session:
+            async with session.put(f"{self.url}/{QlUri.envs_disable.value}", data=data, headers=self.headers) as response:
+                if response.status == 200:
+                    logger.info("disable Envs successful. Token obtained.")
+                    data = await response.json()
+                    return data
+                else:
+                    logger.error(f"disable Envs failed. Status code: {response.status}")
