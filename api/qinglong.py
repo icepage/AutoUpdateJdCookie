@@ -47,7 +47,7 @@ class QlApi(object):
         async with aiohttp.ClientSession() as session:
             async with session.get(f"{self.url}/{QlUri.envs.value}", headers=self.headers) as response:
                 if response.status == 200:
-                    logger.info("Get Envs successful. Token obtained.")
+                    logger.info("Get Envs successful.")
                     data = await response.json()
                     return data
                 else:
@@ -57,7 +57,7 @@ class QlApi(object):
         async with aiohttp.ClientSession() as session:
             async with session.put(f"{self.url}/{QlUri.envs.value}", data=json.dumps(data), headers=self.headers) as response:
                 if response.status == 200:
-                    logger.info("Set Envs successful. Token obtained.")
+                    logger.info("Set Envs successful.")
                     data = await response.json()
                     return data
                 else:
@@ -67,7 +67,7 @@ class QlApi(object):
         async with aiohttp.ClientSession() as session:
             async with session.put(f"{self.url}/{QlUri.envs_enable.value}", data=data, headers=self.headers) as response:
                 if response.status == 200:
-                    logger.info("enable Envs successful. Token obtained.")
+                    logger.info("enable Envs successful.")
                     data = await response.json()
                     return data
                 else:
@@ -77,7 +77,7 @@ class QlApi(object):
         async with aiohttp.ClientSession() as session:
             async with session.put(f"{self.url}/{QlUri.envs_disable.value}", data=data, headers=self.headers) as response:
                 if response.status == 200:
-                    logger.info("disable Envs successful. Token obtained.")
+                    logger.info("disable Envs successful.")
                     data = await response.json()
                     return data
                 else:

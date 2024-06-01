@@ -1,13 +1,40 @@
 import asyncio
 from api.qinglong import QlApi
-from config import slide_difference, slide_x_position, slide_y_position, auto_move, qinglong_data, user_datas, jd_login_url
+from config import (
+    slide_difference,
+    slide_x_position,
+    slide_y_position,
+    auto_move,
+    qinglong_data,
+    user_datas,
+    jd_login_url,
+    auto_shape_recognition,
+    backend_top_left_x,
+    backend_top_left_y,
+    small_img_top_left_x,
+    small_img_top_left_y,
+    small_img_bottom_right_x,
+    small_img_bottom_right_y
+)
 from loguru import logger
 import time
 from playwright.async_api import Playwright, async_playwright
 import random
 import traceback
 from typing import Union
-from utils.tools import base_move, get_img_bytes, get_forbidden_users_dict, filter_forbidden_users
+from utils.consts import supported_types
+from utils.tools import (
+    base_move,
+    get_img_bytes,
+    get_forbidden_users_dict,
+    filter_forbidden_users,
+    save_img,
+    get_ocr,
+    get_word,
+    save_screenshot_img,
+    get_shape_location_by_type,
+    click_by_autogui
+)
 
 """
 基于playwright做的
@@ -40,6 +67,70 @@ async def auto_move_slide(page, retry_times: int=2):
         # 识别移动滑块
         base_move(slide_x_position, slide_y_position, small_img_bytes, background_img_bytes, slide_difference)
         time.sleep(3)
+
+
+async def auto_shape(page, retry_times: int=5):
+    ocr = get_ocr(beta=True)
+    """
+    自动识别滑块验证码
+    """
+    for i in range(retry_times):
+        logger.info(f'第{i}次自动识别形状中...')
+        try:
+            # 查找小图
+            await page.wait_for_selector('#cpc_img', state='visible', timeout=3000)
+        except Exception as e:
+            # 未找到元素，认为成功，退出循环
+            logger.info('未找到形状图,退出识别状态')
+            break
+        # 获取 图片的src 属性和button按键
+        background_src = await page.locator('#cpc_img').get_attribute('src')
+        button = page.locator('div.captcha_footer button.sure_btn')
+
+        # 找到刷新按钮
+        refresh_button = page.locator('div.captcha_header img.jcap_refresh')
+
+        # 截文字小图,返回小图path
+        small_img_path = save_screenshot_img(small_img_top_left_x, small_img_top_left_y, small_img_bottom_right_x, small_img_bottom_right_y, 'small_img')
+
+        # 获取大图并保存
+        background_img_bytes = get_img_bytes(background_src)
+        background_img_path = save_img('background_img', background_img_bytes)
+
+        # 获取问题的文字
+        word = get_word(ocr, small_img_path)
+
+        if word.find('色') > 0:
+            logger.info(f'不支持颜色,刷新中......')
+            # 刷新
+            await refresh_button.click()
+            await asyncio.sleep(random.random() * 2)
+            continue
+        else:
+            type = word.split('请选出图中的')[1]
+            if type in supported_types:
+                logger.info(f'已找到图形,点击中......')
+                # 获取点的中心点
+                center_x, center_y = get_shape_location_by_type(background_img_path, type)
+                if center_x is None and center_y is None:
+                    logger.info(f'识别失败,刷新中......')
+                    await refresh_button.click()
+                    continue
+                # 得到网页上的中心点
+                x, y = backend_top_left_x + center_x ,backend_top_left_y + center_y
+                # 点击图片
+                click_by_autogui(x, y)
+                await asyncio.sleep(random.random() * 3)
+                # 点击确定
+                await button.click()
+                await asyncio.sleep(3)
+                continue
+            else:
+                logger.info(f'不支持该类型形状,刷新中......')
+                # 刷新
+                await refresh_button.click()
+                await asyncio.sleep(random.random() * 3)
+                continue
 
 
 async def get_jd_pt_key(playwright: Playwright, user) -> Union[dict, None]:
@@ -76,6 +167,11 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[dict, None]:
         # 关键的sleep
         time.sleep(2)
         await auto_move_slide(page, retry_times=5)
+
+    # 自动验证形状验证码
+    if auto_shape_recognition:
+        time.sleep(2)
+        await auto_shape(page, retry_times=30)
 
     # 等待滑块验证码通过
     await page.wait_for_selector('#msShortcutMenu', state='visible', timeout=120000)

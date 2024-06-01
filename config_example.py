@@ -28,3 +28,15 @@ slide_difference = 10
 
 # 是否自动识别移动滑块，有时不准，就关掉吧
 auto_move = True
+
+# 是否自动形状验证码识别，有时不准，就关掉吧
+auto_shape_recognition = True
+
+# 形状图的左上角坐标
+backend_top_left_x, backend_top_left_y = 505, 340
+
+# 截取文字区域的左上和右下坐标
+# 左上角坐标
+small_img_top_left_x, small_img_top_left_y = 500, 534
+# 右下角坐标
+small_img_bottom_right_x, small_img_bottom_right_y = 800, 559
