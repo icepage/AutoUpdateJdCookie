@@ -4,17 +4,22 @@
 
 ### 配置步骤
 步骤较繁琐，我们需要拿到几个重要的坐标，请加油！！！
-#### 1、需要获取以下三个坐标
+#### 1、编辑config.py，填入下面几行配置
 ```
-# 截取文字区域的左上和右下坐标
-small_img_top_left_x, small_img_top_left_y = 500, 534  # 左上角坐标
-small_img_bottom_right_x, small_img_bottom_right_y = 800, 559  # 右下角X坐标
+# 是否自动形状验证码识别，有时不准，就关掉吧
+auto_shape_recognition = True
 
 # 形状图的左上角坐标
 backend_top_left_x, backend_top_left_y = 505, 340
+
+# 截取文字区域的左上和右下坐标
+# 左上角坐标
+small_img_top_left_x, small_img_top_left_y = 500, 534
+# 右下角坐标
+small_img_bottom_right_x, small_img_bottom_right_y = 800, 559
 ```
 
-#### 2、运行脚本
+#### 2、运行脚本获取坐标
 ```commandline
 python locate_tool4shape.py
 ```
@@ -31,8 +36,8 @@ python locate_tool4shape.py
 
 ![PNG](./img/run_loate4shape.png)
 
-#### 3、添加配置
-编辑config.py，填入获取到的值
+#### 3、修改配置
+编辑config.py，填入脚本获取上面的值
 
 ```commandline
 # 是否自动形状验证码识别，有时不准，就关掉吧
