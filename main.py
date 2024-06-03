@@ -1,20 +1,11 @@
 import asyncio
 from api.qinglong import QlApi
 from config import (
-    slide_difference,
-    slide_x_position,
-    slide_y_position,
     auto_move,
     qinglong_data,
     user_datas,
     jd_login_url,
     auto_shape_recognition,
-    backend_top_left_x,
-    backend_top_left_y,
-    small_img_top_left_x,
-    small_img_top_left_y,
-    small_img_bottom_right_x,
-    small_img_bottom_right_y
 )
 from loguru import logger
 import time
@@ -22,7 +13,7 @@ from playwright.async_api import Playwright, async_playwright
 import random
 import traceback
 from typing import Union
-from utils.consts import supported_types
+from utils.consts import supported_types, supported_colors
 from utils.tools import (
     base_move,
     get_img_bytes,
@@ -33,6 +24,7 @@ from utils.tools import (
     get_word,
     save_screenshot_img,
     get_shape_location_by_type,
+    get_shape_location_by_color,
     click_by_autogui
 )
 
@@ -46,6 +38,11 @@ async def auto_move_slide(page, retry_times: int=2):
     """
     自动识别移动滑块验证码
     """
+    from config import (
+        slide_difference,
+        slide_x_position,
+        slide_y_position
+    )
     for i in range(retry_times):
         logger.info(f'第{i}次尝试自动移动滑块中...')
         try:
@@ -70,6 +67,14 @@ async def auto_move_slide(page, retry_times: int=2):
 
 
 async def auto_shape(page, retry_times: int=5):
+    from config import (
+        backend_top_left_x,
+        backend_top_left_y,
+        small_img_top_left_x,
+        small_img_top_left_y,
+        small_img_bottom_right_x,
+        small_img_bottom_right_y
+    )
     ocr = get_ocr(beta=True)
     """
     自动识别滑块验证码
@@ -101,11 +106,31 @@ async def auto_shape(page, retry_times: int=5):
         word = get_word(ocr, small_img_path)
 
         if word.find('色') > 0:
-            logger.info(f'不支持颜色,刷新中......')
-            # 刷新
-            await refresh_button.click()
-            await asyncio.sleep(random.random() * 2)
-            continue
+            target_color = word.split('请选出图中')[1].split('的图形')[0]
+            if target_color in supported_colors:
+                logger.info(f'正在点击中......')
+                # 获取点的中心点
+                center_x, center_y = get_shape_location_by_color(background_img_path, target_color)
+                if center_x is None and center_y is None:
+                    logger.info(f'识别失败,刷新中......')
+                    await refresh_button.click()
+                    continue
+                # 得到网页上的中心点
+                x, y = backend_top_left_x + center_x ,backend_top_left_y + center_y
+                # 点击图片
+                click_by_autogui(x, y)
+                await asyncio.sleep(random.random() * 3)
+                # 点击确定
+                await button.click()
+                await asyncio.sleep(3)
+                continue
+            else:
+                logger.info(f'不支持该颜色,刷新中......')
+                # 刷新
+                await refresh_button.click()
+                await asyncio.sleep(random.random() * 2)
+                continue
+
         else:
             type = word.split('请选出图中的')[1]
             if type in supported_types:

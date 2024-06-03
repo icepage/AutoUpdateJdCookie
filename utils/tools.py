@@ -2,12 +2,15 @@ import base64
 import cv2
 import ddddocr
 import io
+import numpy as np
 import pyautogui
 import random
 import os
 from PIL import Image, ImageGrab
 import re
 import time
+from utils.consts import supported_colors
+
 
 def get_tmp_dir(tmp_dir:str = './tmp'):
     # 检查并创建 tmp 目录（如果不存在）
@@ -208,6 +211,42 @@ def get_shape_location_by_type(img_path, type: str):
             return center_x, center_y
 
     # 如果获取不到,则返回空
+    return None, None
+
+
+def get_shape_location_by_color(img_path, target_color):
+    """
+    根据颜色获取指定形状在图片中的坐标
+    """
+
+    # 检查目标颜色是否在定义的颜色范围内
+    if target_color not in supported_colors:
+        raise ValueError(f"Color {target_color} is not defined in the color ranges.")
+
+    # 读取图像
+    image = cv2.imread(img_path)
+    # 读取图像并转换为 HSV 色彩空间。
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+    # 获取目标颜色的范围
+    lower, upper = supported_colors[target_color]
+    lower = np.array(lower, dtype="uint8")
+    upper = np.array(upper, dtype="uint8")
+
+    # 创建掩码并找到轮廓
+    mask = cv2.inRange(hsv_image, lower, upper)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # 遍历轮廓并在中心点画点
+    for contour in contours:
+        # 过滤掉太小的区域
+        if cv2.contourArea(contour) > 100:
+            M = cv2.moments(contour)
+            if M["m00"] != 0:
+                cX = int(M["m10"] / M["m00"])
+                cY = int(M["m01"] / M["m00"])
+                return cX, cY
+
     return None, None
 
 
