@@ -7,6 +7,7 @@ from config import (
     jd_login_url,
     auto_shape_recognition,
 )
+import json
 from loguru import logger
 import time
 from playwright.async_api import Playwright, async_playwright
@@ -212,12 +213,47 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[dict, None]:
     return pt_key
 
 
+async def get_ql_api(ql_data):
+    """
+    封装了QL的登录
+    """
+    qlapi = QlApi(ql_data["url"])
+
+    # 用token就用token登录
+    token = ql_data.get('token')
+    if token:
+        logger.info("正使用Token登录......")
+        qlapi.login_by_token(token)
+
+        # 如果token失效，就用账号密码登录
+        response = await qlapi.get_envs()
+        if response['code'] == 401:
+            logger.info("Token已失效, 正使用账号密码登录......")
+            response = qlapi.login_by_username(ql_data.get("username"), ql_data.get("password"))
+            if response.status_code != 200:
+                logger.error(f"账号密码登录失败. 状态码为: {response['code']}")
+                raise Exception(f"账号密码登录失败. 状态码为: {response['code']}")
+    else:
+        logger.info("正使用账号密码登录......")
+        response = qlapi.login_by_username(ql_data.get("username"), ql_data.get("password"))
+        if response.status_code != 200:
+            logger.error(f"账号密码登录失败. 状态码为: {response['code']}")
+            raise Exception(f"账号密码登录失败. 状态码为: {response['code']}")
+    return qlapi
+
+
 async def main():
     try:
-        qlapi = QlApi(qinglong_data["url"], qinglong_data.get("username"), qinglong_data.get("password"), qinglong_data.get('token'))
+        qlapi = await get_ql_api(qinglong_data)
         # 拿到禁用的用户列表
-        env = await qlapi.get_envs()
-        user_info = env['data']
+        response = await qlapi.get_envs()
+        if response['code'] == 200:
+            logger.info("Get Envs successful.")
+        else:
+            logger.error(f"Get Envs failed. Status code: {response['code']}")
+            raise Exception(f"Request failed with status {response['code']}")
+
+        user_info = response['data']
         # 获取禁用用户
         forbidden_users = [x for x in user_info if x['name'] == 'JD_COOKIE' and x['status'] == 1]
         # logger.info(f"forbidden_users: {forbidden_users}")
@@ -245,18 +281,20 @@ async def main():
         for user in user_dict:
             user_info = user_dict[user]
             user_info["value"] = f"pt_key={token_dict[user]};pt_pin={user_datas[user]['pt_pin']};"
-            response = await qlapi.set_envs(data=user_info)
+            data = json.dumps(user_info)
+            response = await qlapi.set_envs(data=data)
             if response['code'] == 200:
                 logger.info(f"{user} update sucess")
             else:
-                logger.error(f"{user} update fail")
+                logger.error(f"{user} update fail, Status code: {response['code']}")
+                continue
 
             data = bytes(f"[{user_info['id']}]", 'utf-8')
             response = await qlapi.envs_enable(data=data)
             if response['code'] == 200:
                 logger.info(f"{user} envs_enable sucess")
             else:
-                logger.error(f"{user} envs_enable fail")
+                logger.error(f"{user} envs_enable fail, Status code: {response['code']}")
 
     except Exception as e:
         traceback.print_exc()
