@@ -5,3 +5,4 @@ playwright
 loguru
 pyautogui
 pynput
+croniter

@@ -12,6 +12,7 @@ import random
 
 def get_position(x_name, y_name, detail):
     print(f"请点击{detail},将获取坐标 ...")
+
     def on_click(x, y, button, pressed):
         if pressed:
             print(f"{x_name}, {y_name} = {x}, {y}")
@@ -49,8 +50,6 @@ async def main():
 
             await asyncio.sleep(random.random() / 10)
             get_position("backend_top_left_x", "backend_top_left_y", "形状图的左上角")
-            get_position("small_img_top_left_x", "small_img_top_left_y", "文字区域的左上角")
-            get_position("small_img_bottom_right_x", "small_img_bottom_right_y", "文字区域的右下角")
 
             await context.close()
             await browser.close()

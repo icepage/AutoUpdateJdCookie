@@ -1,6 +1,8 @@
+import asyncio
 import base64
 import cv2
 import ddddocr
+from enum import Enum
 import io
 import numpy as np
 import pyautogui
@@ -90,6 +92,7 @@ def save_screenshot_img(left, top, right, bottom, img_name):
     screenshot.save(img_path)
     return img_path
 
+
 def slide_by_autogui(x, y, offset):
     """
     使用pyautogui实现滑块并自定义轨迹方程
@@ -141,6 +144,66 @@ def base_move(slide_x_position, slide_y_position, small_img_bytes, background_im
     x = ddddocr_find_bytes_pic(small_img_bytes, background_img_bytes) + slide_difference
 
     slide_by_autogui(slide_x_position, slide_y_position, x)
+
+
+async def human_like_mouse_move(page, from_x, to_x, y):
+    """
+    移动鼠标
+    """
+    # 第一阶段：快速移动到目标附近，耗时 0.28 秒
+    fast_duration = 0.28
+    fast_steps = 50
+    fast_target_x = from_x + (to_x - from_x) * 0.8
+    fast_dx = (fast_target_x - from_x) / fast_steps
+
+    for _ in range(fast_steps):
+        from_x += fast_dx
+        await page.mouse.move(from_x, y)
+        await asyncio.sleep(fast_duration / fast_steps)
+
+    # 第二阶段：稍微慢一些，耗时随机 20 到 31 毫秒
+    slow_duration = random.randint(20, 31) / 1000
+    slow_steps = 10
+    slow_target_x = from_x + (to_x - from_x) * 0.9
+    slow_dx = (slow_target_x - from_x) / slow_steps
+
+    for _ in range(slow_steps):
+        from_x += slow_dx
+        await page.mouse.move(from_x, y)
+        await asyncio.sleep(slow_duration / slow_steps)
+
+    # 第三阶段：缓慢移动到目标位置，耗时 0.3 秒
+    final_duration = 0.3
+    final_steps = 20
+    final_dx = (to_x - from_x) / final_steps
+
+    for _ in range(final_steps):
+        from_x += final_dx
+        await page.mouse.move(from_x, y)
+        await asyncio.sleep(final_duration / final_steps)
+
+
+async def solve_slider_captcha(page, slider, distance, slide_difference):
+    """
+    解决移动滑块
+    """
+    # 等待滑块元素出现
+    box = await slider.bounding_box()
+
+    # 计算滑块的中心坐标
+    from_x = box['x'] + box['width'] / 2
+    to_y = from_y = box['y'] + box['height'] / 2
+
+    # 模拟按住滑块
+    await page.mouse.move(from_x, from_y)
+    await page.mouse.down()
+
+    to_x = from_x + distance + slide_difference
+    # 平滑移动到目标位置
+    await human_like_mouse_move(page, from_x, to_x, to_y)
+
+    # 放开滑块
+    await page.mouse.up()
 
 
 def sort_rectangle_vertices(vertices):
@@ -259,3 +322,60 @@ def click_by_autogui(x, y):
 
     # 点击鼠标左键
     pyautogui.click()
+
+
+def rgba2rgb(img_name, rgba_img_path, tmp_dir: str = './tmp'):
+    """
+    rgba图片转rgb
+    """
+    tmp_dir = get_tmp_dir(tmp_dir=tmp_dir)
+
+    # 打开一个带透明度的RGBA图像
+    rgba_image = Image.open(rgba_img_path)
+    # 创建一个白色背景图像
+    rgb_image = Image.new("RGB", rgba_image.size, (255, 255, 255))
+    # 将RGBA图像粘贴到背景图像上，使用透明度作为蒙版
+    rgb_image.paste(rgba_image, (0, 0), rgba_image)
+
+    rgb_image_path = os.path.join(tmp_dir, f"{img_name}.png")
+    rgb_image.save(rgb_image_path)
+
+    return rgb_image_path
+
+
+class SendType(Enum):
+    success = 0
+    fail = 1
+
+
+async def send_call_method(obj, method_name, *args, **kwargs):
+    """
+    使用反射调用发送消息的方法。
+
+    :param obj: 对象实例
+    :param method_name: 方法名称
+    :param args: 位置参数
+    :param kwargs: 关键字参数
+    :return: 方法的返回值
+    """
+    # 检查对象是否具有指定的方法
+    if hasattr(obj, method_name):
+        method = getattr(obj, method_name)
+        # 检查获取的属性是否是可调用的
+        return await method(*args, **kwargs)
+
+
+async def send_msg(send_api, send_type: int, msg: str):
+    """
+    读取配置文件，调用send_call_method发消息
+    """
+    from config import is_send_msg
+    if not is_send_msg:
+        return
+
+    from config import send_info, is_send_success_msg, is_send_fail_msg
+    if (send_type == SendType.success.value and is_send_success_msg) or (send_type == SendType.fail.value and is_send_fail_msg):
+        for key in send_info:
+            for url in send_info[key]:
+                await send_call_method(send_api, key, url, msg)
+    return

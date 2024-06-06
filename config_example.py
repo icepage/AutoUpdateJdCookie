@@ -20,8 +20,6 @@ qinglong_data = {
     # 可选参数，QL面板的sessionid，主要是避免抢占QL后台的登录。需要在浏览器上，F12上获取Authorization的请求头。如果为空或不设置则账号密码登录
     "token": ""
 }
-# 滑块距离屏幕左上角的x, y像素, 需根据自己屏幕大小调整
-slide_x_position, slide_y_position = 533, 572
 
 # 滑块验证码的偏差, 如果一直滑过了, 或滑不到, 可以调节下
 slide_difference = 10
@@ -35,8 +33,23 @@ auto_shape_recognition = True
 # 形状图的左上角坐标
 backend_top_left_x, backend_top_left_y = 505, 340
 
-# 截取文字区域的左上和右下坐标
-# 左上角坐标
-small_img_top_left_x, small_img_top_left_y = 500, 534
-# 右下角坐标
-small_img_bottom_right_x, small_img_bottom_right_y = 800, 559
+# 定时器
+cron_expression = "0 5-6 * * *"
+
+# 是否开启发消息
+is_send_msg = False
+# 更新成功后是否发消息的开关
+is_send_success_msg = True
+# 更新失败后是否发消息的开关
+is_send_fail_msg = True
+# 配置发送地址
+send_info = {
+    "send_wecom": [
+    ],
+    "send_webhook": [
+    ],
+    "send_dingtalk": [
+    ],
+    "send_feishu": [
+    ]
+}
