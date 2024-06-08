@@ -93,7 +93,7 @@ async def auto_shape(page, retry_times: int = 5):
         logger.info(f'第{i + 1}次自动识别形状中...')
         try:
             # 查找小图
-            await page.wait_for_selector('#cpc_img', state='visible', timeout=3000)
+            await page.wait_for_selector('div.captcha_footer img', state='visible', timeout=3000)
         except Exception as e:
             # 未找到元素，认为成功，退出循环
             logger.info('未找到形状图,退出识别状态')
@@ -134,16 +134,16 @@ async def auto_shape(page, retry_times: int = 5):
                 x, y = backend_top_left_x + center_x, backend_top_left_y + center_y
                 # 点击图片
                 click_by_autogui(x, y)
-                await asyncio.sleep(random.random() * 3)
+                await asyncio.sleep(random.uniform(1, 3))
                 # 点击确定
                 await button.click()
                 await asyncio.sleep(3)
                 continue
             else:
-                logger.info(f'不支持该颜色,刷新中......')
+                logger.info(f'不支持{target_color},刷新中......')
                 # 刷新
                 await refresh_button.click()
-                await asyncio.sleep(random.random() * 2)
+                await asyncio.sleep(random.uniform(1, 3))
                 continue
 
         else:
@@ -155,22 +155,22 @@ async def auto_shape(page, retry_times: int = 5):
                 if center_x is None and center_y is None:
                     logger.info(f'识别失败,刷新中......')
                     await refresh_button.click()
-                    await asyncio.sleep(random.random() * 3)
+                    await asyncio.sleep(random.uniform(1, 3))
                     continue
                 # 得到网页上的中心点
                 x, y = backend_top_left_x + center_x, backend_top_left_y + center_y
                 # 点击图片
                 click_by_autogui(x, y)
-                await asyncio.sleep(random.random() * 3)
+                await asyncio.sleep(random.uniform(1, 3))
                 # 点击确定
                 await button.click()
                 await asyncio.sleep(3)
                 continue
             else:
-                logger.info(f'不支持该类型形状,刷新中......')
+                logger.info(f'不支持{shape_type},刷新中......')
                 # 刷新
                 await refresh_button.click()
-                await asyncio.sleep(random.random() * 3)
+                await asyncio.sleep(random.uniform(1, 3))
                 continue
 
 
@@ -221,6 +221,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
                 await auto_shape(page, retry_times=30)
 
         # 等待验证码通过
+        logger.info("等待获取cookie...")
         await page.wait_for_selector('#msShortcutMenu', state='visible', timeout=120000)
 
         cookies = await context.cookies()
