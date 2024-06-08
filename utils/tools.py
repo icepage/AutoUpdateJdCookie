@@ -318,6 +318,7 @@ def click_by_autogui(x, y):
     点击指定坐标的元素
     """
     # 移动鼠标到指定坐标
+    pyautogui.FAILSAFE = False
     pyautogui.moveTo(x, y)
 
     # 点击鼠标左键
