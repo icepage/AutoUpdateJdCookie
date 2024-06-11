@@ -3,7 +3,7 @@
 ## 介绍
 - 用来自动化更新青龙面板的失效JD_COOKIE, 主要有三步
     - 自动化获取青龙面板的失效JD_COOKIE
-    - 基于失效JD_COOKIE, 自动化登录JD,包括滑块验证, 拿到key
+    - 基于失效JD_COOKIE,自动化登录JD,包括滑块验证和二次形状验证码,拿到key
     - 基于key, 自动化更新青龙面板的失效JD_COOKIE
 - python >= 3.9 (playwright依赖的typing，在3.7和3.8会报错typing.NoReturn的BUG)
 - 基于windows
@@ -33,26 +33,13 @@ pip install -r requirements.txt
 playwright install chromium
 ```
 
-### 获取二次形状验证图左上角的坐标
-```commandline
-python locate_tool4shape.py
-```
-- 运行脚本后，等待浏览器自动滑块验证后，进入二次形状验证码后，点击左上角触发脚本捕获到backend_top_left_x, backend_top_left_y
-
-- 如下图
-
-![PNG](./img/sharp_click.png)
-
-- 运行情况如下图
-![PNG](./img/run_loate4shape.png)
-
 ### 添加配置config.py
 - 复制config_example.py, 重命名为config.py, 我们基于这个config.py运行程序;
 - user_datas及qinglong_data为用户数据,按照实际信息填写;
 - auto_move为自动识别并移动滑块验证码的开关, 有时不准就关了;
 - slide_difference为滑块验证码的偏差, 如果一直滑过了, 或滑不到, 需要调节下;
 - auto_shape_recognition为二次图形状验证码的开关;
-- backend_top_left_x, backend_top_left_y 为形状图的左上角坐标,通过locate_tool4shape.py脚本获得
+- headless设置浏览器是否启用无头模式，即是否展示整个登录过程，建议调试时False，稳定后True
 - cron_expression基于cron的表达式，用于schedule_main.py定期进行更新任务
 - 消息类的配置下面会说明
 

@@ -10,6 +10,7 @@ from config import (
 )
 import json
 from loguru import logger
+import os
 from playwright.async_api import Playwright, async_playwright
 import random
 import traceback
@@ -20,6 +21,7 @@ from utils.consts import (
     supported_colors
 )
 from utils.tools import (
+    get_tmp_dir,
     get_img_bytes,
     get_forbidden_users_dict,
     filter_forbidden_users,
@@ -28,7 +30,6 @@ from utils.tools import (
     get_word,
     get_shape_location_by_type,
     get_shape_location_by_color,
-    click_by_autogui,
     rgba2rgb,
     send_msg,
     solve_slider_captcha,
@@ -81,10 +82,6 @@ async def auto_move_slide(page, retry_times: int = 2):
 
 
 async def auto_shape(page, retry_times: int = 5):
-    from config import (
-        backend_top_left_x,
-        backend_top_left_y
-    )
     ocr = get_ocr(beta=True)
     """
     自动识别滑块验证码
@@ -98,17 +95,27 @@ async def auto_shape(page, retry_times: int = 5):
             # 未找到元素，认为成功，退出循环
             logger.info('未找到形状图,退出识别状态')
             break
+
+        tmp_dir = get_tmp_dir()
+
+        background_img_path = os.path.join(tmp_dir, f'background_img.png')
+        # 获取大图元素
+        background_locator = page.locator('#cpc_img')
+        # 获取元素的位置和尺寸
+        backend_bounding_box = await background_locator.bounding_box()
+        backend_top_left_x = backend_bounding_box['x']
+        backend_top_left_y = backend_bounding_box['y']
+
+        # 截取元素区域
+        await page.screenshot(path=background_img_path, clip=backend_bounding_box)
+
         # 获取 图片的src 属性和button按键
-        background_src = await page.locator('#cpc_img').get_attribute('src')
         word_img_src = await page.locator('div.captcha_footer img').get_attribute('src')
         button = page.locator('div.captcha_footer button.sure_btn')
 
         # 找到刷新按钮
         refresh_button = page.locator('div.captcha_header img.jcap_refresh')
 
-        # 获取大图并保存
-        background_img_bytes = get_img_bytes(background_src)
-        background_img_path = save_img('background_img', background_img_bytes)
 
         # 获取文字图并保存
         word_img_bytes = get_img_bytes(word_img_src)
@@ -129,21 +136,22 @@ async def auto_shape(page, retry_times: int = 5):
                 if center_x is None and center_y is None:
                     logger.info(f'识别失败,刷新中......')
                     await refresh_button.click()
+                    await asyncio.sleep(random.uniform(2, 4))
                     continue
                 # 得到网页上的中心点
                 x, y = backend_top_left_x + center_x, backend_top_left_y + center_y
                 # 点击图片
-                click_by_autogui(x, y)
-                await asyncio.sleep(random.uniform(1, 3))
+                await page.mouse.click(x, y)
+                await asyncio.sleep(random.uniform(1, 4))
                 # 点击确定
                 await button.click()
-                await asyncio.sleep(3)
+                await asyncio.sleep(random.uniform(1, 4))
                 continue
             else:
                 logger.info(f'不支持{target_color},刷新中......')
                 # 刷新
                 await refresh_button.click()
-                await asyncio.sleep(random.uniform(1, 3))
+                await asyncio.sleep(random.uniform(1, 4))
                 continue
 
         else:
@@ -155,22 +163,22 @@ async def auto_shape(page, retry_times: int = 5):
                 if center_x is None and center_y is None:
                     logger.info(f'识别失败,刷新中......')
                     await refresh_button.click()
-                    await asyncio.sleep(random.uniform(1, 3))
+                    await asyncio.sleep(random.uniform(1, 4))
                     continue
                 # 得到网页上的中心点
                 x, y = backend_top_left_x + center_x, backend_top_left_y + center_y
                 # 点击图片
-                click_by_autogui(x, y)
-                await asyncio.sleep(random.uniform(1, 3))
+                await page.mouse.click(x, y)
+                await asyncio.sleep(random.uniform(1, 4))
                 # 点击确定
                 await button.click()
-                await asyncio.sleep(3)
+                await asyncio.sleep(random.uniform(1, 4))
                 continue
             else:
                 logger.info(f'不支持{shape_type},刷新中......')
                 # 刷新
                 await refresh_button.click()
-                await asyncio.sleep(random.uniform(1, 3))
+                await asyncio.sleep(random.uniform(1, 4))
                 continue
 
 
@@ -178,7 +186,13 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
     """
     获取jd的pt_key
     """
-    browser = await playwright.chromium.launch(headless=False)
+
+    try:
+        from config import headless
+    except ImportError:
+        headless = False
+
+    browser = await playwright.chromium.launch(headless=headless)
     context = await browser.new_context()
 
     try:
