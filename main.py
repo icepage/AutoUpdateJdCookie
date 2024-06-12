@@ -265,11 +265,11 @@ async def get_ql_api(ql_data):
     # 优化client_id和client_secret
     client_id = ql_data.get('client_id')
     client_secret = ql_data.get('client_secret')
-    if ql_data.get('client_id') and ql_data.get('client_secret'):
+    if client_id and client_secret:
         logger.info("使用client_id和client_secret登录......")
         qlapi = QlOpenApi(ql_data["url"])
         response = qlapi.login(client_id=client_id, client_secret=client_secret)
-        if response.status_code == 200:
+        if response['code'] == 200:
             logger.info("client_id和client_secret正常可用......")
             return qlapi
         else:

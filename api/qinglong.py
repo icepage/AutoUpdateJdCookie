@@ -80,8 +80,9 @@ class QlOpenApi(object):
             'Content-Type': 'application/json'
         }
         response = requests.get(url=f"{self.url}/{QlOpenUri.auth_token.value}?client_id={client_id}&client_secret={client_secret}", headers=headers)
-        if response.status_code == 200:
-            self.token = "Bearer " + response.json()["data"]["token"]
+        response = response.json()
+        if response['code'] == 200:
+            self.token = "Bearer " + response["data"]["token"]
             headers['Authorization'] = self.token
             self.headers = headers
         return response
