@@ -5,11 +5,6 @@ from utils.consts import program
 from config import cron_expression
 from main import main
 from loguru import logger
-logger.add(
-    sink="main.log",
-    format="{time:YYYY-MM-DD HH:mm:ss} {level} {message}",
-    level="DEBUG"
-)
 
 
 def get_next_runtime(cron_expression, base_time=None):

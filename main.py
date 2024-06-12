@@ -41,7 +41,6 @@ from utils.tools import (
 """
 logger.add(
     sink="main.log",
-    format="{time:YYYY-MM-DD HH:mm:ss} {level} {message}",
     level="DEBUG"
 )
 
