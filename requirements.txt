@@ -3,5 +3,4 @@ requests
 aiohttp
 playwright
 loguru
-pynput
 croniter
