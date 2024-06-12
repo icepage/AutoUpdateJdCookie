@@ -15,6 +15,8 @@ jd_login_url = "https://plogin.m.jd.com/login/login?appid=300&returnurl=https%3A
 # ql信息
 qinglong_data = {
     "url": "http://127.0.0.1:5700/",
+    "client_id": "",
+    "client_secret": "",
     "username": "admin",
     "password": "123456",
     # 可选参数，QL面板的sessionid，主要是避免抢占QL后台的登录。需要在浏览器上，F12上获取Authorization的请求头。如果为空或不设置则账号密码登录
@@ -29,9 +31,6 @@ auto_move = True
 
 # 是否自动形状验证码识别，有时不准，就关掉吧
 auto_shape_recognition = True
-
-# 形状图的左上角坐标
-backend_top_left_x, backend_top_left_y = 505, 340
 
 # 定时器
 cron_expression = "0 5-6 * * *"

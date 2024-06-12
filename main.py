@@ -1,5 +1,5 @@
 import asyncio
-from api.qinglong import QlApi
+from api.qinglong import QlApi, QlOpenApi
 from api.send import SendApi
 from config import (
     jd_login_url,
@@ -260,9 +260,23 @@ async def get_ql_api(ql_data):
     封装了QL的登录
     """
     logger.info("开始获取QL登录态......")
+
+    # 优化client_id和client_secret
+    client_id = ql_data.get('client_id')
+    client_secret = ql_data.get('client_secret')
+    if ql_data.get('client_id') and ql_data.get('client_secret'):
+        logger.info("使用client_id和client_secret登录......")
+        qlapi = QlOpenApi(ql_data["url"])
+        response = qlapi.login(client_id=client_id, client_secret=client_secret)
+        if response.status_code == 200:
+            logger.info("client_id和client_secret正常可用......")
+            return qlapi
+        else:
+            logger.info("client_id和client_secret异常......")
+
     qlapi = QlApi(ql_data["url"])
 
-    # 用token就用token登录
+    # 其次用token
     token = ql_data.get('token')
     if token:
         logger.info("已设置TOKEN,开始检测TOKEN状态......")
@@ -279,6 +293,7 @@ async def get_ql_api(ql_data):
         else:
             logger.info("Token正常可用......")
     else:
+        # 最后用账号密码
         logger.info("正使用账号密码获取QL登录态......")
         response = qlapi.login_by_username(ql_data.get("username"), ql_data.get("password"))
         if response.status_code != 200:

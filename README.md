@@ -12,16 +12,6 @@
 ![GIF](./img/main.gif)
 
 
-## TODOLIST
-- 批量更新多账号(已实现)
-- selenium加载太慢，用playwright改写(已实现)
-- 自动识别拖动验证码(已实现)
-- 加日志(已实现)
-- 写使用文档(已实现)
-- 加一些通知如钉钉等(已实现)
-- 添加获取滑块x,y坐标的工具(已实现)
-- 加入了自动验证形状码的方法(已实现)
-
 ## 使用文档
 ### 安装依赖
 ```commandline
@@ -35,7 +25,18 @@ playwright install chromium
 
 ### 添加配置config.py
 - 复制config_example.py, 重命名为config.py, 我们基于这个config.py运行程序;
-- user_datas及qinglong_data为用户数据,按照实际信息填写;
+- user_datas为JD用户数据,按照实际信息填写;
+- qinglong_data为QL数据,按照实际信息填写;
+  - 建议优先选择用client_id和client_secret,获取方法如下：
+  ```commandline
+  1、在系统设置 -> 应用设置 -> 添加应用，进行添加
+  2、需要【环境变量】的权限
+  3、此功能支持青龙2.9+
+  ```
+  
+  - 其次选择用token,需要在浏览器上，F12上获取Authorization的请求头。
+  - 账号密码为最次选择, 这种方式会抢占QL后台的登录。
+
 - auto_move为自动识别并移动滑块验证码的开关, 有时不准就关了;
 - slide_difference为滑块验证码的偏差, 如果一直滑过了, 或滑不到, 需要调节下;
 - auto_shape_recognition为二次图形状验证码的开关;
