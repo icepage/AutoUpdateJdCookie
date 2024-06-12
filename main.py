@@ -157,6 +157,8 @@ async def auto_shape(page, retry_times: int = 5):
             shape_type = word.split('请选出图中的')[1]
             if shape_type in supported_types:
                 logger.info(f'已找到图形,点击中......')
+                if shape_type == "圆环":
+                    shape_type = shape_type.replace('圆环', '圆形')
                 # 获取点的中心点
                 center_x, center_y = get_shape_location_by_type(background_img_path, shape_type)
                 if center_x is None and center_y is None:

@@ -10,7 +10,8 @@ supported_types = [
     "五角星",
     "六边形",
     "圆形",
-    "梯形"
+    "梯形",
+    "圆环"
 ]
 # 定义了支持的每种颜色的 HSV 范围
 supported_colors = {

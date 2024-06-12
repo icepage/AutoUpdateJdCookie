@@ -260,11 +260,10 @@ def get_shape_location_by_type(img_path, type: str):
                     obj_type = "长方形"
         elif CornerNum == 6:
             obj_type = "六边形"
+        elif CornerNum == 8:
+            obj_type = "圆形"
         elif CornerNum == 20:
             obj_type = "五角星"
-        elif 4 < CornerNum < 6 or 6 < CornerNum < 20 or CornerNum > 20:
-            # 圆形
-            obj_type = "圆形"
         else:
             obj_type = "未知"
 
