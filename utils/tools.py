@@ -5,12 +5,10 @@ import ddddocr
 from enum import Enum
 import io
 import numpy as np
-import pyautogui
 import random
 import os
-from PIL import Image, ImageGrab
+from PIL import Image
 import re
-import time
 from utils.consts import supported_colors
 
 
@@ -79,36 +77,6 @@ def get_word(ocr, img_path):
     return result
 
 
-def save_screenshot_img(left, top, right, bottom, img_name):
-    tmp_dir = get_tmp_dir()
-    img_path = os.path.join(tmp_dir, f'{img_name}.png')
-    # 等待片刻以确保截图区域的准备
-    time.sleep(2)
-
-    # 获取屏幕截图
-    screenshot = ImageGrab.grab(bbox=(left, top, right, bottom))
-
-    # 保存截图
-    screenshot.save(img_path)
-    return img_path
-
-
-def slide_by_autogui(x, y, offset):
-    """
-    使用pyautogui实现滑块并自定义轨迹方程
-    """
-    xx = x + offset
-    pyautogui.moveTo(x, y, duration=0.1)
-    pyautogui.mouseDown()
-    y += random.randint(9, 19)
-    pyautogui.moveTo(x + int(offset * random.randint(15, 23) / 20), y, duration=0.28)
-    y += random.randint(-9, 0)
-    pyautogui.moveTo(x + int(offset * random.randint(17, 21) / 20), y, duration=random.randint(20, 31) / 100)
-    y += random.randint(0, 8)
-    pyautogui.moveTo(xx, y, duration=0.3)
-    pyautogui.mouseUp()
-
-
 def filter_forbidden_users(user_info: list, fields: list = None) -> list:
     """
     过滤出想要的字段的字典列表
@@ -128,22 +96,6 @@ def get_forbidden_users_dict(users_list: list, user_datas: dict) -> dict:
                 users_dict[key] = info
                 break
     return users_dict
-
-
-def base_move(slide_x_position, slide_y_position, small_img_bytes, background_img_bytes, slide_difference):
-    """
-    通用的识别滑块验证码的方法
-    :param slide_x_position 滑块所在的x坐标
-    :param slide_y_position 滑块所在的y坐标
-    :param small_img_bytes 小图的base64
-    :param background_img_bytes 背景图的base64
-    :param slide_difference 偏移量，根据实际情况调节
-    """
-
-    # 获取滑动长度
-    x = ddddocr_find_bytes_pic(small_img_bytes, background_img_bytes) + slide_difference
-
-    slide_by_autogui(slide_x_position, slide_y_position, x)
 
 
 async def human_like_mouse_move(page, from_x, to_x, y):
@@ -310,18 +262,6 @@ def get_shape_location_by_color(img_path, target_color):
                 return cX, cY
 
     return None, None
-
-
-def click_by_autogui(x, y):
-    """
-    点击指定坐标的元素
-    """
-    # 移动鼠标到指定坐标
-    pyautogui.FAILSAFE = False
-    pyautogui.moveTo(x, y)
-
-    # 点击鼠标左键
-    pyautogui.click()
 
 
 def rgba2rgb(img_name, rgba_img_path, tmp_dir: str = './tmp'):
