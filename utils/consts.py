@@ -1,7 +1,5 @@
 # 项目名
 program = "AutoUpdateJdCookie"
-# 网页title
-unique_title = "京东登录注册"
 # 支持的形状类型
 supported_types = [
     "三角形",

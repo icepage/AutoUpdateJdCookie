@@ -16,7 +16,6 @@ import random
 import traceback
 from typing import Union
 from utils.consts import (
-    unique_title,
     supported_types,
     supported_colors
 )
@@ -202,10 +201,6 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         js = """Object.defineProperties(navigator, {webdriver:{get:()=>undefined}});"""
         await page.add_init_script(js)
         await page.goto(jd_login_url)
-        # 设置唯一的页面标题
-        page_title = await page.evaluate("document.title")
-        if page_title != unique_title:
-            await page.evaluate(f"document.title = '{unique_title}';")
         await page.get_by_text("账号密码登录").click()
 
         username_input = page.get_by_placeholder("账号名/邮箱/手机号")
