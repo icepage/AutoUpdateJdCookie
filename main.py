@@ -336,6 +336,7 @@ async def main():
 
                 req_data = user_dict[user]
                 req_data["value"] = f"pt_key={pt_key};pt_pin={user_datas[user]['pt_pin']};"
+                logger.info(f"更新内容为{req_data}")
                 data = json.dumps(req_data)
                 response = await qlapi.set_envs(data=data)
                 if response['code'] == 200:
