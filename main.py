@@ -284,8 +284,8 @@ async def get_ql_api(ql_data):
             logger.info("Token已失效, 正使用账号密码获取QL登录态......")
             response = qlapi.login_by_username(ql_data.get("username"), ql_data.get("password"))
             if response.status_code != 200:
-                logger.error(f"账号密码登录失败. 状态码为: {response['code']}")
-                raise Exception(f"账号密码登录失败. 状态码为: {response['code']}")
+                logger.error(f"账号密码登录失败. response: {response}")
+                raise Exception(f"账号密码登录失败. response: {response}")
         else:
             logger.info("Token正常可用......")
     else:
@@ -293,8 +293,8 @@ async def get_ql_api(ql_data):
         logger.info("正使用账号密码获取QL登录态......")
         response = qlapi.login_by_username(ql_data.get("username"), ql_data.get("password"))
         if response.status_code != 200:
-            logger.error(f"账号密码登录失败. 状态码为: {response['code']}")
-            raise Exception(f"账号密码登录失败. 状态码为: {response['code']}")
+            logger.error(f"账号密码登录失败. response: {response}")
+            raise Exception(f"账号密码登录失败.response: {response}")
     return qlapi
 
 
@@ -307,8 +307,8 @@ async def main():
         if response['code'] == 200:
             logger.info("获取环境变量成功")
         else:
-            logger.error(f"获取环境变量失败， 状态码为: {response['code']}")
-            raise Exception(f"获取环境变量失败， 状态码为:  {response['code']}")
+            logger.error(f"获取环境变量失败， response: {response}")
+            raise Exception(f"获取环境变量失败， response: {response}")
 
         user_info = response['data']
         # 获取禁用用户
@@ -330,6 +330,7 @@ async def main():
                 logger.info(f"开始更新{user}")
                 pt_key = await get_jd_pt_key(playwright, user)
                 if pt_key is None:
+                    logger.error(f"获取pt_key失败")
                     await send_msg(send_api, send_type=1, msg=f"{user} 更新失败")
                     continue
 
@@ -340,7 +341,7 @@ async def main():
                 if response['code'] == 200:
                     logger.info(f"{user}更新成功")
                 else:
-                    logger.error(f"{user}更新失败, 状态码为: {response['code']}")
+                    logger.error(f"{user}更新失败, response: {response}")
                     await send_msg(send_api, send_type=1, msg=f"{user} 更新失败")
                     continue
 
@@ -350,7 +351,7 @@ async def main():
                     logger.info(f"{user}启用成功")
                     await send_msg(send_api, send_type=0, msg=f"{user} 更新成功")
                 else:
-                    logger.error(f"{user}启用失败, 状态码为:  {response['code']}")
+                    logger.error(f"{user}启用失败, response: {response}")
 
     except Exception as e:
         traceback.print_exc()

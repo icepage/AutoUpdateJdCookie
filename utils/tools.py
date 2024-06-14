@@ -233,10 +233,6 @@ def get_shape_location_by_color(img_path, target_color):
     根据颜色获取指定形状在图片中的坐标
     """
 
-    # 检查目标颜色是否在定义的颜色范围内
-    if target_color not in supported_colors:
-        raise ValueError(f"Color {target_color} is not defined in the color ranges.")
-
     # 读取图像
     image = cv2.imread(img_path)
     # 读取图像并转换为 HSV 色彩空间。
