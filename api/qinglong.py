@@ -1,6 +1,6 @@
+from urllib.parse import urljoin
 import aiohttp
 import requests
-import json
 from enum import Enum
 from typing import Union
 
@@ -41,7 +41,7 @@ class QlApi(object):
         headers = {
             'Content-Type': 'application/json'
         }
-        response = requests.post(url=f"{self.url}/{QlUri.user_login.value}", data=json.dumps(data), headers=headers)
+        response = requests.post(url=urljoin(self.url, QlUri.user_login.value), json=data, headers=headers)
         if response.status_code == 200:
             self.token = "Bearer " + response.json()["data"]["token"]
             headers['Authorization'] = self.token
@@ -50,22 +50,22 @@ class QlApi(object):
 
     async def get_envs(self):
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"{self.url}/{QlUri.envs.value}", headers=self.headers) as response:
+            async with session.get(url=urljoin(self.url, QlUri.envs.value), headers=self.headers) as response:
                 return await response.json()
 
     async def set_envs(self, data: Union[str, None] = None):
         async with aiohttp.ClientSession() as session:
-            async with session.put(f"{self.url}/{QlUri.envs.value}", data=data, headers=self.headers) as response:
+            async with session.put(url=urljoin(self.url, QlUri.envs.value), data=data, headers=self.headers) as response:
                 return await response.json()
 
     async def envs_enable(self, data: bytes):
         async with aiohttp.ClientSession() as session:
-            async with session.put(f"{self.url}/{QlUri.envs_enable.value}", data=data, headers=self.headers) as response:
+            async with session.put(url=urljoin(self.url, QlUri.envs_enable.value), data=data, headers=self.headers) as response:
                 return await response.json()
 
     async def envs_disable(self, data: bytes):
         async with aiohttp.ClientSession() as session:
-            async with session.put(f"{self.url}/{QlUri.envs_disable.value}", data=data, headers=self.headers) as response:
+            async with session.put(url=urljoin(self.url, QlUri.envs_disable.value), data=data, headers=self.headers) as response:
                 return await response.json()
 
 
@@ -79,7 +79,11 @@ class QlOpenApi(object):
         headers = {
             'Content-Type': 'application/json'
         }
-        response = requests.get(url=f"{self.url}/{QlOpenUri.auth_token.value}?client_id={client_id}&client_secret={client_secret}", headers=headers)
+        params = {
+            "client_id": client_id,
+            "client_secret": client_secret
+        }
+        response = requests.get(url=urljoin(self.url, QlOpenUri.auth_token.value), params=params, headers=headers)
         response = response.json()
         if response['code'] == 200:
             self.token = "Bearer " + response["data"]["token"]
@@ -89,20 +93,20 @@ class QlOpenApi(object):
 
     async def get_envs(self):
         async with aiohttp.ClientSession() as session:
-            async with session.get(f"{self.url}/{QlOpenUri.envs.value}", headers=self.headers) as response:
+            async with session.get(url=urljoin(self.url, QlOpenUri.envs.value), headers=self.headers) as response:
                 return await response.json()
 
     async def set_envs(self, data: Union[str, None] = None):
         async with aiohttp.ClientSession() as session:
-            async with session.put(f"{self.url}/{QlOpenUri.envs.value}", data=data, headers=self.headers) as response:
+            async with session.put(url=urljoin(self.url, QlOpenUri.envs.value), data=data, headers=self.headers) as response:
                 return await response.json()
 
     async def envs_enable(self, data: bytes):
         async with aiohttp.ClientSession() as session:
-            async with session.put(f"{self.url}/{QlOpenUri.envs_enable.value}", data=data, headers=self.headers) as response:
+            async with session.put(url=urljoin(self.url, QlOpenUri.envs_enable.value), data=data, headers=self.headers) as response:
                 return await response.json()
 
     async def envs_disable(self, data: bytes):
         async with aiohttp.ClientSession() as session:
-            async with session.put(f"{self.url}/{QlOpenUri.envs_disable.value}", data=data, headers=self.headers) as response:
+            async with session.put(url=urljoin(self.url, QlOpenUri.envs_disable.value), data=data, headers=self.headers) as response:
                 return await response.json()
