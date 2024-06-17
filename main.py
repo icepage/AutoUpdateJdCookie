@@ -143,13 +143,13 @@ async def auto_shape(page, retry_times: int = 5):
                 await asyncio.sleep(random.uniform(1, 4))
                 # 点击确定
                 await button.click()
-                await asyncio.sleep(random.uniform(1, 4))
+                await asyncio.sleep(random.uniform(2, 4))
                 continue
             else:
                 logger.info(f'不支持{target_color},刷新中......')
                 # 刷新
                 await refresh_button.click()
-                await asyncio.sleep(random.uniform(1, 4))
+                await asyncio.sleep(random.uniform(2, 4))
                 continue
 
         else:
@@ -163,7 +163,7 @@ async def auto_shape(page, retry_times: int = 5):
                 if center_x is None and center_y is None:
                     logger.info(f'识别失败,刷新中......')
                     await refresh_button.click()
-                    await asyncio.sleep(random.uniform(1, 4))
+                    await asyncio.sleep(random.uniform(2, 4))
                     continue
                 # 得到网页上的中心点
                 x, y = backend_top_left_x + center_x, backend_top_left_y + center_y
@@ -172,13 +172,13 @@ async def auto_shape(page, retry_times: int = 5):
                 await asyncio.sleep(random.uniform(1, 4))
                 # 点击确定
                 await button.click()
-                await asyncio.sleep(random.uniform(1, 4))
+                await asyncio.sleep(random.uniform(2, 4))
                 continue
             else:
                 logger.info(f'不支持{shape_type},刷新中......')
                 # 刷新
                 await refresh_button.click()
-                await asyncio.sleep(random.uniform(1, 4))
+                await asyncio.sleep(random.uniform(2, 4))
                 continue
 
 
