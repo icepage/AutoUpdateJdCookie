@@ -4,6 +4,7 @@ import cv2
 import ddddocr
 from enum import Enum
 import io
+from loguru import logger
 import numpy as np
 import random
 import os
@@ -313,5 +314,7 @@ async def send_msg(send_api, send_type: int, msg: str):
     if (send_type == SendType.success.value and is_send_success_msg) or (send_type == SendType.fail.value and is_send_fail_msg):
         for key in send_info:
             for url in send_info[key]:
-                await send_call_method(send_api, key, url, msg)
+                rep = await send_call_method(send_api, key, url, msg)
+                logger.info(f"发送消息到 {url}, 响应:{rep}")
+
     return
