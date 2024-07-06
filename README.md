@@ -3,7 +3,7 @@
 ## 介绍
 - 用来自动化更新青龙面板的失效JD_COOKIE, 主要有三步
     - 自动化获取青龙面板的失效JD_COOKIE
-    - 基于失效JD_COOKIE,自动化登录JD,包括滑块验证和二次形状验证码,拿到key
+    - 基于失效JD_COOKIE,自动化登录JD,包括滑块验证和二次形状验证码和点选验证码,拿到key
     - 基于key, 自动化更新青龙面板的失效JD_COOKIE
 - python >= 3.9 (playwright依赖的typing，在3.7和3.8会报错typing.NoReturn的BUG)
 - 基于windows
@@ -92,3 +92,6 @@ python schedule_main.py
 
 ### 特别感谢
 - 感谢 **https://github.com/sml2h3/ddddocr** 项目，牛逼项目
+
+### 创作不易，请作者喝杯咖啡吧
+![JPG](./img/w.jpg)

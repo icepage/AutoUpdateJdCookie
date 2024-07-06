@@ -318,3 +318,25 @@ async def send_msg(send_api, send_type: int, msg: str):
                 logger.info(f"发送消息到 {url}, 响应:{rep}")
 
     return
+
+
+def get_zero_or_not(v):
+    if v < 0:
+        return 0
+    return v
+
+
+def expand_coordinates(x1, y1, x2, y2, N):
+    # Calculate expanded coordinates
+    new_x1 = get_zero_or_not(x1 - N)
+    new_y1 = get_zero_or_not(y1 - N)
+    new_x2 = x2 + N
+    new_y2 = y2 + N
+    return new_x1, new_y1, new_x2, new_y2
+
+
+def cv2_save_img(img_name, img, tmp_dir:str = './tmp'):
+    tmp_dir = get_tmp_dir(tmp_dir)
+    img_path = os.path.join(tmp_dir, f'{img_name}.png')
+    cv2.imwrite(img_path, img)
+    return img_path

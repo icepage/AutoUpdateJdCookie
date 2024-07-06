@@ -8,11 +8,13 @@ from config import (
     user_datas,
     auto_shape_recognition,
 )
+import cv2
 import json
 from loguru import logger
 import os
 from playwright.async_api import Playwright, async_playwright
 import random
+import re
 import traceback
 from typing import Union
 from utils.consts import (
@@ -32,7 +34,9 @@ from utils.tools import (
     rgba2rgb,
     send_msg,
     solve_slider_captcha,
-    ddddocr_find_bytes_pic
+    ddddocr_find_bytes_pic,
+    expand_coordinates,
+    cv2_save_img
 )
 
 """
@@ -80,7 +84,10 @@ async def auto_move_slide(page, retry_times: int = 2):
 
 
 async def auto_shape(page, retry_times: int = 5):
+    # 图像识别
     ocr = get_ocr(beta=True)
+    # 文字识别
+    det = get_ocr(det=True)
     """
     自动识别滑块验证码
     """
@@ -151,6 +158,56 @@ async def auto_shape(page, retry_times: int = 5):
                 await refresh_button.click()
                 await asyncio.sleep(random.uniform(2, 4))
                 continue
+
+        # 这里是文字验证码了
+        elif word.find('依次') > 0:
+            logger.info(f'开始文字识别,点击中......')
+            # 获取文字的顺序列表
+            target_char_list = list(re.findall(r'[\u4e00-\u9fff]+', word)[1])
+            target_char_len = len(target_char_list)
+            # 定义【文字：坐标】的字典
+            target_char_dict = {x: [] for x in target_char_list}
+
+            # 获取大图的二进制
+            background_locator = page.locator('#cpc_img')
+            background_locator_src = await background_locator.get_attribute('src')
+            background_locator_bytes = get_img_bytes(background_locator_src)
+            bboxes = det.detection(background_locator_bytes)
+
+            count = 0
+            im = cv2.imread(background_img_path)
+            for bbox in bboxes:
+                # 左上角
+                x1, y1, x2, y2 = bbox
+                # 做了一下扩大
+                expanded_x1, expanded_y1, expanded_x2, expanded_y2 = expand_coordinates(x1, y1, x2, y2, 10)
+                im2 = im[expanded_y1:expanded_y2, expanded_x1:expanded_x2]
+                img_path = cv2_save_img('word', im2)
+                image_bytes = open(img_path, "rb").read()
+                result = ocr.classification(image_bytes, png_fix=True)
+                if result in target_char_list:
+                    x = x1 + (x2 - x1) / 2
+                    y = y1 + (y2 - y1) / 2
+                    target_char_dict[result] = [x, y]
+                    count += 1
+            if count != target_char_len:
+                logger.info(f'文字识别失败,刷新中......')
+                await refresh_button.click()
+                await asyncio.sleep(random.uniform(2, 4))
+                continue
+
+            for char in target_char_dict:
+                center_x = target_char_dict[char][0]
+                center_y = target_char_dict[char][1]
+                # 得到网页上的中心点
+                x, y = backend_top_left_x + center_x, backend_top_left_y + center_y
+                # 点击图片
+                await page.mouse.click(x, y)
+                await asyncio.sleep(random.uniform(1, 4))
+
+            # 点击确定
+            await button.click()
+            await asyncio.sleep(random.uniform(2, 4))
 
         else:
             shape_type = word.split('请选出图中的')[1]
