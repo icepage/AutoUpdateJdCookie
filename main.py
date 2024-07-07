@@ -1,3 +1,4 @@
+import aiohttp
 import asyncio
 from api.qinglong import QlApi, QlOpenApi
 from api.send import SendApi
@@ -15,6 +16,7 @@ import os
 from playwright.async_api import Playwright, async_playwright
 import random
 import re
+from PIL import Image  # 用于图像处理
 import traceback
 from typing import Union
 from utils.consts import (
@@ -33,8 +35,8 @@ from utils.tools import (
     get_shape_location_by_color,
     rgba2rgb,
     send_msg,
-    solve_slider_captcha,
-    ddddocr_find_bytes_pic,
+    new_solve_slider_captcha,
+    ddddocr_find_files_pic,
     expand_coordinates,
     cv2_save_img
 )
@@ -46,6 +48,17 @@ logger.add(
     sink="main.log",
     level="DEBUG"
 )
+
+
+async def download_image(url, filepath):
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                with open(filepath, 'wb') as f:
+                    f.write(await response.read())
+                print(f"Image downloaded to {filepath}")
+            else:
+                print(f"Failed to download image. Status code: {response.status}")
 
 
 async def auto_move_slide(page, retry_times: int = 2):
@@ -71,15 +84,33 @@ async def auto_move_slide(page, retry_times: int = 2):
         small_img_bytes = get_img_bytes(small_src)
         background_img_bytes = get_img_bytes(background_src)
 
+        # 保存小图
+        small_img_path = save_img('small_img', small_img_bytes)
+        small_img_width = await page.evaluate('() => { return document.getElementById("small_img").clientWidth; }')  # 获取网页的图片尺寸
+        small_img_height = await page.evaluate('() => { return document.getElementById("small_img").clientHeight; }')  # 获取网页的图片尺寸
+        small_image = Image.open(small_img_path)  # 打开图像
+        resized_small_image = small_image.resize((small_img_width, small_img_height))  # 调整图像尺寸
+        resized_small_image.save(small_img_path)  # 保存调整后的图像
+
+        # 保存大图
+        background_img_path = save_img('background_img', background_img_bytes)
+        background_img_width = await page.evaluate('() => { return document.getElementById("cpc_img").clientWidth; }')  # 获取网页的图片尺寸
+        background_img_height = await page.evaluate('() => { return document.getElementById("cpc_img").clientHeight; }')  # 获取网页的图片尺寸
+        background_image = Image.open(background_img_path)  # 打开图像
+        resized_background_image = background_image.resize((background_img_width, background_img_height))  # 调整图像尺寸
+        resized_background_image.save(background_img_path)  # 保存调整后的图像
+
         # 获取滑块
         slider = await page.wait_for_selector('img.move-img')
         await asyncio.sleep(1)
 
         # 获取要移动的长度
-        distance = ddddocr_find_bytes_pic(small_img_bytes, background_img_bytes)
+        # distance = ddddocr_find_bytes_pic(small_img_bytes, background_img_bytes)
+        distance = ddddocr_find_files_pic(small_img_path, background_img_path)
         await asyncio.sleep(1)
         # 移动滑块
-        await solve_slider_captcha(page, slider, distance, slide_difference)
+        # await solve_slider_captcha(page, slider, distance, slide_difference)
+        await new_solve_slider_captcha(page, slider, distance, slide_difference)
         await asyncio.sleep(1)
 
 
@@ -249,14 +280,12 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
     except ImportError:
         headless = False
 
-    browser = await playwright.chromium.launch(headless=headless)
+    args = '--no-sandbox', '--disable-setuid-sandbox'
+    browser = await playwright.chromium.launch(headless=headless, args=args)
     context = await browser.new_context()
 
     try:
         page = await context.new_page()
-        # 关闭Webdriver属性,绕过Webdriver检测
-        js = """Object.defineProperties(navigator, {webdriver:{get:()=>undefined}});"""
-        await page.add_init_script(js)
         await page.goto(jd_login_url)
         await page.get_by_text("账号密码登录").click()
 

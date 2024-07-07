@@ -159,6 +159,23 @@ async def solve_slider_captcha(page, slider, distance, slide_difference):
     await page.mouse.up()
 
 
+async def new_solve_slider_captcha(page, slider, distance, slide_difference):
+    # 等待滑块元素出现
+    distance = distance + slide_difference
+    box = await slider.bounding_box()
+    await page.mouse.move(box['x'] + 10 , box['y'] + 10)
+    await page.mouse.down()  # 模拟鼠标按下
+    print(-1)
+    await page.mouse.move(box['x'] + distance + random.uniform(8, 25), box['y'], steps=10)  # 模拟鼠标拖动，考虑到实际操作中可能存在的轻微误差和波动，加入随机偏移量
+    print(0)
+    await asyncio.sleep(random.randint(1, 5) / 10)  # 随机等待一段时间，模仿人类操作的不确定性
+    print(1)
+    await page.mouse.move(box['x'] + distance, box['y'], steps=10)  # 继续拖动滑块到目标位置
+    print(2)
+    await page.mouse.up()  # 模拟鼠标释放，完成滑块拖动
+    print(3)
+    await asyncio.sleep(3)  # 等待3秒，等待滑块验证结果
+
 def sort_rectangle_vertices(vertices):
     """
     获取左上、右上、右下、左下顺序的坐标

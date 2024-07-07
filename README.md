@@ -92,6 +92,7 @@ python schedule_main.py
 
 ### 特别感谢
 - 感谢 **https://github.com/sml2h3/ddddocr** 项目，牛逼项目
+- 感谢 **https://github.com/zzhjj/svjdck** 项目，牛逼项目
 
-### 创作不易，请作者喝杯咖啡吧
+### 创作不易，如果项目有帮助到你，你可以打赏下作者
 ![JPG](./img/w.jpg)
