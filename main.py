@@ -204,8 +204,8 @@ async def auto_shape(page, retry_times: int = 5):
                 await asyncio.sleep(random.uniform(2, 4))
                 continue
 
-            # 定义【文字：坐标】的字典
-            target_char_dict = {x: [] for x in target_char_list}
+            # 定义【文字, 坐标】的列表
+            target_list = [[x, []] for x in target_char_list]
 
             # 获取大图的二进制
             background_locator = page.locator('#cpc_img')
@@ -225,19 +225,22 @@ async def auto_shape(page, retry_times: int = 5):
                 image_bytes = open(img_path, "rb").read()
                 result = ocr.classification(image_bytes, png_fix=True)
                 if result in target_char_list:
-                    x = x1 + (x2 - x1) / 2
-                    y = y1 + (y2 - y1) / 2
-                    target_char_dict[result] = [x, y]
-                    count += 1
+                    for index, target in enumerate(target_list):
+                        if result == target[0] and target[0] is not None:
+                            x = x1 + (x2 - x1) / 2
+                            y = y1 + (y2 - y1) / 2
+                            target_list[index][1] = [x, y]
+                            count += 1
+
             if count != target_char_len:
                 logger.info(f'文字识别失败,刷新中......')
                 await refresh_button.click()
                 await asyncio.sleep(random.uniform(2, 4))
                 continue
 
-            for char in target_char_dict:
-                center_x = target_char_dict[char][0]
-                center_y = target_char_dict[char][1]
+            for char in target_list:
+                center_x = char[1][0]
+                center_y = char[1][1]
                 # 得到网页上的中心点
                 x, y = backend_top_left_x + center_x, backend_top_left_y + center_y
                 # 点击图片
