@@ -150,7 +150,7 @@ async def auto_shape(page, retry_times: int = 5):
         button = page.locator('div.captcha_footer button.sure_btn')
 
         # 找到刷新按钮
-        refresh_button = page.locator('div.captcha_header img.jcap_refresh')
+        refresh_button = page.locator('.jcap_refresh')
 
 
         # 获取文字图并保存
@@ -196,6 +196,14 @@ async def auto_shape(page, retry_times: int = 5):
             # 获取文字的顺序列表
             target_char_list = list(re.findall(r'[\u4e00-\u9fff]+', word)[1])
             target_char_len = len(target_char_list)
+
+            # 识别字数不对
+            if target_char_len != 4:
+                logger.info(f'识别的字数不对,刷新中......')
+                await refresh_button.click()
+                await asyncio.sleep(random.uniform(2, 4))
+                continue
+
             # 定义【文字：坐标】的字典
             target_char_dict = {x: [] for x in target_char_list}
 
