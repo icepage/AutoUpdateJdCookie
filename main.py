@@ -21,7 +21,8 @@ import traceback
 from typing import Union
 from utils.consts import (
     supported_types,
-    supported_colors
+    supported_colors,
+    supported_sms_func
 )
 from utils.tools import (
     get_tmp_dir,
@@ -38,7 +39,9 @@ from utils.tools import (
     new_solve_slider_captcha,
     ddddocr_find_files_pic,
     expand_coordinates,
-    cv2_save_img
+    cv2_save_img,
+    ddddocr_find_bytes_pic,
+    solve_slider_captcha
 )
 
 """
@@ -61,7 +64,7 @@ async def download_image(url, filepath):
                 print(f"Failed to download image. Status code: {response.status}")
 
 
-async def auto_move_slide(page, retry_times: int = 2):
+async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'img.move-img', move_solve_type: str = ""):
     """
     自动识别移动滑块验证码
     """
@@ -101,15 +104,20 @@ async def auto_move_slide(page, retry_times: int = 2):
         resized_background_image.save(background_img_path)  # 保存调整后的图像
 
         # 获取滑块
-        slider = await page.wait_for_selector('img.move-img')
+        slider = page.locator(slider_selector)
         await asyncio.sleep(1)
 
+        if move_solve_type == "old":
+            # 用于调试
+            distance = ddddocr_find_bytes_pic(small_img_bytes, background_img_bytes)
+            await asyncio.sleep(1)
+            await solve_slider_captcha(page, slider, distance, slide_difference)
+            await asyncio.sleep(1)
+            continue
         # 获取要移动的长度
-        # distance = ddddocr_find_bytes_pic(small_img_bytes, background_img_bytes)
         distance = ddddocr_find_files_pic(small_img_path, background_img_path)
         await asyncio.sleep(1)
         # 移动滑块
-        # await solve_slider_captcha(page, slider, distance, slide_difference)
         await new_solve_slider_captcha(page, slider, distance, slide_difference)
         await asyncio.sleep(1)
 
@@ -281,6 +289,54 @@ async def auto_shape(page, retry_times: int = 5):
                 continue
 
 
+async def sms_recognition(page, user):
+    logger.info("开始短信验证码识别")
+    if await page.locator('text="手机短信验证"').count() == 0:
+        return
+
+    try:
+        from config import sms_func
+        if sms_func not in supported_sms_func:
+            raise Exception(f"sms_func只支持{supported_sms_func}")
+    except ImportError:
+        sms_func = "no"
+
+    if sms_func == "no":
+        raise Exception("需要填写验证码")
+
+    logger.info('点击【获取验证码】中')
+    await page.click('button.getMsg-btn')
+    await asyncio.sleep(1)
+    # 自动识别滑块
+    await auto_move_slide(page, retry_times=5, slider_selector='div.bg-blue')
+    await auto_shape(page, retry_times=30)
+
+    # 识别是否成功发送验证码
+    await page.wait_for_selector('button.getMsg-btn:has-text("重新发送")', timeout=3000)
+    logger.info("发送短信验证码成功")
+
+    # 手动输入
+    # 用户在60S内，手动在终端输入验证码
+    if sms_func == "manual_input":
+        from inputimeout import inputimeout, TimeoutOccurred
+        try:
+            verification_code = inputimeout(prompt="请输入验证码：", timeout=60)
+        except TimeoutOccurred:
+            return
+
+        logger.info('填写验证码中...')
+        verification_code_input = page.locator('input.acc-input.msgCode')
+        for v in verification_code:
+            await verification_code_input.type(v, no_wait_after=True)
+            await asyncio.sleep(random.random() / 10)
+
+        logger.info('点击提交中...')
+        await page.click('a.btn')
+
+    # TODO:通过调用web_hook的方式来实现全自动输入验证码
+    elif sms_func == "web_hook":
+        pass
+
 async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
     """
     获取jd的pt_key
@@ -326,6 +382,10 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
             if auto_shape_recognition:
                 await asyncio.sleep(1)
                 await auto_shape(page, retry_times=30)
+
+            # 进行短信验证识别
+            await asyncio.sleep(1)
+            await sms_recognition(page, user)
 
         # 等待验证码通过
         logger.info("等待获取cookie...")

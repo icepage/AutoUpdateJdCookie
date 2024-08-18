@@ -4,3 +4,4 @@ aiohttp
 playwright
 loguru
 croniter
+inputimeout
