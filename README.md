@@ -8,7 +8,7 @@
     - 基于key, 自动化更新青龙面板的失效JD_COOKIE
 - python >= 3.9 (playwright依赖的typing，在3.7和3.8会报错typing.NoReturn的BUG)
 - 支持windows,linux(无GUI)
-- linux无GUI使用文档请转向 [linux无GUI使用文档](https://github.com/icepage/AutoUpdateJdCookie/blob/main/README.linux.md])
+- linux无GUI使用文档请转向 [linux无GUI使用文档](https://github.com/icepage/AutoUpdateJdCookie/blob/main/README.linux.md)
 - WINDOWS整体效果如下图
 
 ![GIF](./img/main.gif)
