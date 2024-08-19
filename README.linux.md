@@ -1,23 +1,22 @@
-# MyJdCOOKIE
+# linux无GUI使用文档
 
 ## 介绍
-- 用来自动化更新青龙面板的失效JD_COOKIE, 主要有三步
-    - 自动化获取青龙面板的失效JD_COOKIE
-    - 基于失效JD_COOKIE,自动化登录JD,包括滑块验证和二次形状验证码和点选验证码,拿到key
-    - 支持了短信验证码的识别,目前支持手动输入
-    - 基于key, 自动化更新青龙面板的失效JD_COOKIE
-- python >= 3.9 (playwright依赖的typing，在3.7和3.8会报错typing.NoReturn的BUG)
-- 支持windows,linux(无GUI)
-- linux无GUI使用文档请转向 [linux无GUI使用文档](https://github.com/icepage/AutoUpdateJdCookie/blob/main/README.linux.md)
-- WINDOWS整体效果如下图
+- 作者认为要用LINUX就用无GUI的，所以未对GUI版本进行测试。
+- 主要的卡点在于短信验证码识别，目前支持了，所以可以LINUX上运行。
+- 使用手动输入验证码方式进行登录，整体过程如下图
 
-![GIF](./img/main.gif)
+![PNG](./img/linux.png)
 
 
 ## 使用文档
 ### 安装依赖
 ```commandline
 pip install -r requirements.txt
+```
+
+### 安装浏览器驱动
+```commandline
+playwright install-deps
 ```
 
 ### 安装chromium插件
@@ -42,14 +41,13 @@ playwright install chromium
 - auto_move为自动识别并移动滑块验证码的开关, 有时不准就关了;
 - slide_difference为滑块验证码的偏差, 如果一直滑过了, 或滑不到, 需要调节下;
 - auto_shape_recognition为二次图形状验证码的开关;
-- headless设置浏览器是否启用无头模式，即是否展示整个登录过程，建议调试时False，稳定后True
+- headless设置浏览器是否启用无头模式，即是否展示整个登录过程，**必需使用True**
 - cron_expression基于cron的表达式，用于schedule_main.py定期进行更新任务
 - sms_func为填写验信验证码的模式,有以下三种
   - no 关闭短信验证码识别
   - manual_input 手动在终端输入验证码
   - webhook 调用api获取验证码,可实现全自动填写验证码,暂未实现
 - 消息类的配置下面会说明
-
 
 ### 配置消息通知
 #### 1、如果不需要发消息，请关掉消息开关，忽略消息配置
@@ -96,9 +94,8 @@ python main.py
 python schedule_main.py
 ```
 
-### 特别感谢
-- 感谢 **https://github.com/sml2h3/ddddocr** 项目，牛逼项目
-- 感谢 **https://github.com/zzhjj/svjdck** 项目，牛逼项目
-
-### 创作不易，如果项目有帮助到你，你可以打赏下作者
-![JPG](./img/w.jpg)
+### 3、定时任务
+使用crontab
+```commandline
+0 3,4 * * * python main.py
+```

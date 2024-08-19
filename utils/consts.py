@@ -22,3 +22,8 @@ supported_colors = {
     '黄色': ([25, 50, 50], [35, 255, 255]),
     '红色': ([0, 50, 50], [10, 255, 255])
 }
+supported_sms_func = [
+    "no",
+    "webhook",
+    "manual_input"
+]
