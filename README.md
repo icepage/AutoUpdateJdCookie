@@ -97,6 +97,7 @@ python schedule_main.py
 ```
 
 ### 特别感谢
+- 感谢 [所有赞助本项目的热心网友 --> 打赏名单](https://github.com/icepage/AutoUpdateJdCookie/wiki/%E6%89%93%E8%B5%8F%E5%90%8D%E5%8D%95)
 - 感谢 **https://github.com/sml2h3/ddddocr** 项目，牛逼项目
 - 感谢 **https://github.com/zzhjj/svjdck** 项目，牛逼项目
 
