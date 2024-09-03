@@ -42,11 +42,8 @@ playwright install chromium
 - slide_difference为滑块验证码的偏差, 如果一直滑过了, 或滑不到, 需要调节下;
 - auto_shape_recognition为二次图形状验证码的开关;
 - headless设置浏览器是否启用无头模式，即是否展示整个登录过程，**必需使用True**
-- cron_expression基于cron的表达式，用于schedule_main.py定期进行更新任务
-- sms_func为填写验信验证码的模式,有以下三种
-  - no 关闭短信验证码识别
-  - manual_input 手动在终端输入验证码
-  - webhook 调用api获取验证码,可实现全自动填写验证码,暂未实现
+- cron_expression基于cron的表达式，用于schedule_main.py定期进行更新任务;
+- 消息类的配置下面会说明;
 - 消息类的配置下面会说明
 
 ### 配置消息通知
@@ -80,6 +77,55 @@ send_info = {
     ]
 }
 ```
+
+### 短信验证码说明
+#### 1、全局配置
+- sms_func为填写验信验证码的模式,有以下三种
+  - no 关闭短信验证码识别;
+  - manual_input 手动在终端输入验证码;
+  - webhook 调用api获取验证码,可实现全自动填写验证码;
+- sms_webhook为的sms webhook地址;
+
+#### 2、按账号个性配置
+可以按账号配置sms_func和sms_webhook, 如果账号内没配置则会读全局配置的值
+```python
+  "13500000000": {
+      "password": "123456",
+      "pt_pin": "123456",
+      "sms_func": "webhook",
+      "sms_webhook": "https://127.0.0.1:3000/api/getCode"
+  }
+```
+
+#### 3、调用webhook说明
+
+##### METHOD
+POST 
+
+##### Description
+获取验证码
+
+##### Body
+```json
+{
+    "phone_number": "13500000000"
+}
+```
+
+#### Response
+```json
+{
+    "err_code": 0,
+    "message": "Success",
+    "data": {
+        "code": "475431"
+    }
+}
+```
+
+#### 4、参考项目
+
+[SmsCodeWebhook](https://github.com/icepage/SmsCodeWebhook)
 
 
 ### 运行脚本

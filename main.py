@@ -296,10 +296,13 @@ async def sms_recognition(page, user):
 
     try:
         from config import sms_func
-        if sms_func not in supported_sms_func:
-            raise Exception(f"sms_func只支持{supported_sms_func}")
     except ImportError:
         sms_func = "no"
+
+    sms_func = user_datas[user].get("sms_func", sms_func)
+
+    if sms_func not in supported_sms_func:
+        raise Exception(f"sms_func只支持{supported_sms_func}")
 
     if sms_func == "no":
         raise Exception("需要填写验证码")
@@ -324,18 +327,34 @@ async def sms_recognition(page, user):
         except TimeoutOccurred:
             return
 
-        logger.info('填写验证码中...')
-        verification_code_input = page.locator('input.acc-input.msgCode')
-        for v in verification_code:
-            await verification_code_input.type(v, no_wait_after=True)
-            await asyncio.sleep(random.random() / 10)
-
-        logger.info('点击提交中...')
-        await page.click('a.btn')
-
-    # TODO:通过调用web_hook的方式来实现全自动输入验证码
+    # 通过调用web_hook的方式来实现全自动输入验证码
     elif sms_func == "web_hook":
-        pass
+        from utils.tools import send_request
+        try:
+            from config import sms_webhook
+        except ImportError:
+            sms_webhook = ""
+        sms_webhook = user_datas[user].get("sms_webhook", sms_webhook)
+
+        if sms_webhook is None:
+            raise Exception(f"sms_webhook未配置")
+
+        headers = {
+            'Content-Type': 'application/json',
+        }
+        data = {"phone_number": user}
+        response = await send_request(url=sms_webhook, method="post", headers=headers, data=data)
+        verification_code = response['data']['code']
+
+    asyncio.sleep(1)
+    logger.info('填写验证码中...')
+    verification_code_input = page.locator('input.acc-input.msgCode')
+    for v in verification_code:
+        await verification_code_input.type(v, no_wait_after=True)
+        await asyncio.sleep(random.random() / 10)
+
+    logger.info('点击提交中...')
+    await page.click('a.btn')
 
 async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
     """

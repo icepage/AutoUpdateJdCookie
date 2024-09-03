@@ -2,11 +2,18 @@
 user_datas = {
     "13500000000": {
         "password": "123456",
-        "pt_pin": "123456"
+        "pt_pin": "123456",
+        "sms_func": "webhook",
+        "sms_webhook": "https://127.0.0.1:3000/getCode"
     },
     "13500000001": {
         "password": "123456",
-        "pt_pin": "123456"
+        "pt_pin": "123456",
+        "sms_func": "no"
+    },
+    "13500000002": {
+        "password": "123456",
+        "pt_pin": "123456",
     },
 }
 # JD登录页
@@ -61,3 +68,4 @@ send_info = {
 # manual_input 手动在终端输入验证码
 # TODO: webhook 调用api获取验证码,可实现全自动填写验证码
 sms_func = "manual_input"
+sms_webhook = "https://127.0.0.1:3000/getCode"

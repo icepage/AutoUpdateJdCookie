@@ -1,3 +1,4 @@
+import aiohttp
 import asyncio
 import base64
 import cv2
@@ -10,6 +11,7 @@ import random
 import os
 from PIL import Image
 import re
+from typing import Dict, Any
 from utils.consts import supported_colors
 
 
@@ -352,3 +354,12 @@ def cv2_save_img(img_name, img, tmp_dir:str = './tmp'):
     img_path = os.path.join(tmp_dir, f'{img_name}.png')
     cv2.imwrite(img_path, img)
     return img_path
+
+
+async def send_request(url: str, method: str, headers: Dict[str, Any], data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    发请求的通用方法
+    """
+    async with aiohttp.ClientSession() as session:
+        async with session.request(method, url=url, json=data, headers=headers) as response:
+            return await response.json()
