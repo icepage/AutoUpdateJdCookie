@@ -2,10 +2,14 @@
 
 ## 介绍
 - 用来自动化更新青龙面板的失效JD_COOKIE, 主要有三步
-    - 自动化获取青龙面板的失效JD_COOKIE
-    - 基于失效JD_COOKIE,自动化登录JD,包括滑块验证和二次形状验证码和点选验证码,拿到key
-    - 支持了短信验证码的识别,目前支持手动输入和webhook
-    - 基于key, 自动化更新青龙面板的失效JD_COOKIE
+    - 自动获取青龙面板的失效JD_COOKIE;
+    - 拿到失效JD_COOKIE内容后, 根据配置的账号信息, 自动化登录JD页面, 拿到key;
+    - 根据拿到的key, 自动化更新青龙面板的失效JD_COOKIE。
+- 支持的验证码类型有：
+  - 滑块验证码;
+  - 形状颜色验证码(基本不会出现了);
+  - 点选验证码;
+  - 短信验证码,支持手动输入和webhook(首次登录大概率出现, 其它时间出现频率低。webhook配置流程繁琐, 不爱折腾的建议使用手动输入或关闭。)
 - python >= 3.9 (playwright依赖的typing，在3.7和3.8会报错typing.NoReturn的BUG)
 - 支持windows,linux(无GUI)
 - linux无GUI使用文档请转向 [linux无GUI使用文档](https://github.com/icepage/AutoUpdateJdCookie/blob/main/README.linux.md)
