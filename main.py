@@ -3,7 +3,6 @@ import asyncio
 from api.qinglong import QlApi, QlOpenApi
 from api.send import SendApi
 from config import (
-    jd_login_url,
     auto_move,
     qinglong_data,
     user_datas,
@@ -20,6 +19,7 @@ from PIL import Image  # 用于图像处理
 import traceback
 from typing import Union
 from utils.consts import (
+    jd_login_url,
     supported_types,
     supported_colors,
     supported_sms_func
