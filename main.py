@@ -346,7 +346,7 @@ async def sms_recognition(page, user):
         response = await send_request(url=sms_webhook, method="post", headers=headers, data=data)
         verification_code = response['data']['code']
 
-    asyncio.sleep(1)
+    await asyncio.sleep(1)
     logger.info('填写验证码中...')
     verification_code_input = page.locator('input.acc-input.msgCode')
     for v in verification_code:
