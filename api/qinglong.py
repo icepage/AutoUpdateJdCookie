@@ -1,9 +1,8 @@
 from urllib.parse import urljoin
 import aiohttp
-import requests
 from enum import Enum
 from typing import Union
-
+from utils.tools import send_request
 
 class QlUri(Enum):
     user_login = "api/user/login"
@@ -33,7 +32,7 @@ class QlApi(object):
         headers['Authorization'] = self.token
         self.headers = headers
 
-    def login_by_username(self, user: str, password: str):
+    async def login_by_username(self, user: str, password: str):
         data = {
             "username": user,
             "password": password
@@ -41,9 +40,9 @@ class QlApi(object):
         headers = {
             'Content-Type': 'application/json'
         }
-        response = requests.post(url=urljoin(self.url, QlUri.user_login.value), json=data, headers=headers)
-        if response.status_code == 200:
-            self.token = "Bearer " + response.json()["data"]["token"]
+        response = await send_request(url=urljoin(self.url, QlUri.user_login.value), method="post", headers=headers, data=data)
+        if response['code'] == 200:
+            self.token = "Bearer " + response["data"]["token"]
             headers['Authorization'] = self.token
             self.headers = headers
         return response
@@ -75,7 +74,7 @@ class QlOpenApi(object):
         self.url = url
         self.headers = None
 
-    def login(self, client_id: str, client_secret: str):
+    async def login(self, client_id: str, client_secret: str):
         headers = {
             'Content-Type': 'application/json'
         }
@@ -83,8 +82,7 @@ class QlOpenApi(object):
             "client_id": client_id,
             "client_secret": client_secret
         }
-        response = requests.get(url=urljoin(self.url, QlOpenUri.auth_token.value), params=params, headers=headers)
-        response = response.json()
+        response = await send_request(url=urljoin(self.url, QlOpenUri.auth_token.value), method="get", headers=headers, params=params)
         if response['code'] == 200:
             self.token = "Bearer " + response["data"]["token"]
             headers['Authorization'] = self.token

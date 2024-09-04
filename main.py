@@ -439,7 +439,7 @@ async def get_ql_api(ql_data):
     if client_id and client_secret:
         logger.info("使用client_id和client_secret登录......")
         qlapi = QlOpenApi(ql_data["url"])
-        response = qlapi.login(client_id=client_id, client_secret=client_secret)
+        response = await qlapi.login(client_id=client_id, client_secret=client_secret)
         if response['code'] == 200:
             logger.info("client_id和client_secret正常可用......")
             return qlapi
@@ -458,8 +458,8 @@ async def get_ql_api(ql_data):
         response = await qlapi.get_envs()
         if response['code'] == 401:
             logger.info("Token已失效, 正使用账号密码获取QL登录态......")
-            response = qlapi.login_by_username(ql_data.get("username"), ql_data.get("password"))
-            if response.status_code != 200:
+            response = await qlapi.login_by_username(ql_data.get("username"), ql_data.get("password"))
+            if response['code'] != 200:
                 logger.error(f"账号密码登录失败. response: {response}")
                 raise Exception(f"账号密码登录失败. response: {response}")
         else:
@@ -467,8 +467,8 @@ async def get_ql_api(ql_data):
     else:
         # 最后用账号密码
         logger.info("正使用账号密码获取QL登录态......")
-        response = qlapi.login_by_username(ql_data.get("username"), ql_data.get("password"))
-        if response.status_code != 200:
+        response = await qlapi.login_by_username(ql_data.get("username"), ql_data.get("password"))
+        if response['code'] != 200:
             logger.error(f"账号密码登录失败. response: {response}")
             raise Exception(f"账号密码登录失败.response: {response}")
     return qlapi

@@ -1,5 +1,4 @@
 ddddocr
-requests
 aiohttp
 playwright
 loguru
