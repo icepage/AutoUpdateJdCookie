@@ -51,6 +51,21 @@ playwright install chromium
 - 消息类的配置下面会说明;
 - 短信验证码说明在下面会说明。
 
+
+## 在 docker 运行
+
+### 在本地 docker 运行
+先按上述文档在本地创建 config.py 
+
+```bash
+# 创建镜像
+docker build -t jdcookie .
+
+
+# 运行, 如果 config.py 在当前目录则不需要加文件映射
+docker run -v /本地路径/config.py:/app/config.py jdcookie
+```
+
 ### 配置消息通知
 #### 1、如果不需要发消息，请关掉消息开关，忽略消息配置
 ```commandline
