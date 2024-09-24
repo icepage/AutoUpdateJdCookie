@@ -4,11 +4,30 @@
 - 作者认为要用LINUX就用无GUI的，所以未对GUI版本进行测试。
 - 主要的卡点在于短信验证码识别，目前支持了，所以可以LINUX上运行。
 - 使用手动输入验证码方式进行登录，整体过程如下图
+- 支持docker部署
 
 ![PNG](./img/linux.png)
 
 
 ## 使用文档
+## 1、docker部署(推荐)
+
+### 添加配置config.py
+- 复制config_example.py, 重命名为config.py, 我们基于这个config.py运行程序;
+- 按本地包部署文档里，关于config.py说明来配置
+
+### 下载镜像
+```shell
+docker pull icepage/aujc:latest
+```
+
+### 运行
+```bash
+# 运行, 如果 config.py 在当前目录则不需要加文件映射
+docker run -v /本地路径/config.py:/app/config.py icepage/aujc:latest
+```
+
+## 2、本地部署
 ### 安装依赖
 ```commandline
 pip install -r requirements.txt

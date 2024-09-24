@@ -12,6 +12,7 @@
   - 短信验证码,支持手动输入和webhook(首次登录大概率出现, 其它时间出现频率低。webhook配置流程繁琐, 不爱折腾的建议使用手动输入或关闭。)
 - python >= 3.9 (playwright依赖的typing，在3.7和3.8会报错typing.NoReturn的BUG)
 - 支持windows,linux(无GUI)
+- 支持docker部署
 - linux无GUI使用文档请转向 [linux无GUI使用文档](https://github.com/icepage/AutoUpdateJdCookie/blob/main/README.linux.md)
 - WINDOWS整体效果如下图
 
@@ -19,6 +20,24 @@
 
 
 ## 使用文档
+## 1、docker部署(推荐)
+
+### 添加配置config.py
+- 复制config_example.py, 重命名为config.py, 我们基于这个config.py运行程序;
+- 按本地包部署文档里，关于config.py说明来配置
+
+### 下载镜像
+```shell
+docker pull icepage/aujc:latest
+```
+
+### 运行
+```bash
+# 运行, 如果 config.py 在当前目录则不需要加文件映射
+docker run -v /本地路径/config.py:/app/config.py icepage/aujc:latest
+```
+
+## 2、本地部署
 ### 安装依赖
 ```commandline
 pip install -r requirements.txt
@@ -51,20 +70,6 @@ playwright install chromium
 - 消息类的配置下面会说明;
 - 短信验证码说明在下面会说明。
 
-
-## 在 docker 运行
-
-### 在本地 docker 运行
-先按上述文档在本地创建 config.py 
-
-```bash
-# 创建镜像
-docker build -t jdcookie .
-
-
-# 运行, 如果 config.py 在当前目录则不需要加文件映射
-docker run -v /本地路径/config.py:/app/config.py jdcookie
-```
 
 ### 配置消息通知
 #### 1、如果不需要发消息，请关掉消息开关，忽略消息配置
@@ -160,10 +165,10 @@ python main.py
 python schedule_main.py
 ```
 
-### 特别感谢
+## 特别感谢
 - 感谢 [所有赞助本项目的热心网友 --> 打赏名单](https://github.com/icepage/AutoUpdateJdCookie/wiki/%E6%89%93%E8%B5%8F%E5%90%8D%E5%8D%95)
 - 感谢 **https://github.com/sml2h3/ddddocr** 项目，牛逼项目
 - 感谢 **https://github.com/zzhjj/svjdck** 项目，牛逼项目
 
-### 创作不易，如果项目有帮助到你，你可以打赏下作者
+## 创作不易，如果项目有帮助到你，你可以打赏下作者
 ![JPG](./img/w.jpg)
