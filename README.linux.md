@@ -15,6 +15,7 @@
 ### 添加配置config.py
 - 复制config_example.py, 重命名为config.py, 我们基于这个config.py运行程序;
 - 按本地包部署文档里，关于config.py说明来配置
+- 需要配置好 **cron_expression** 参数, 程序基于这个参数定期进行更新任务;
 
 ### 下载镜像
 ```shell
