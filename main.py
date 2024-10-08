@@ -328,7 +328,7 @@ async def sms_recognition(page, user):
             return
 
     # 通过调用web_hook的方式来实现全自动输入验证码
-    elif sms_func == "web_hook":
+    elif sms_func == "webhook":
         from utils.tools import send_request
         try:
             from config import sms_webhook
