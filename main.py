@@ -290,10 +290,6 @@ async def auto_shape(page, retry_times: int = 5):
 
 
 async def sms_recognition(page, user):
-    logger.info("开始短信验证码识别")
-    if await page.locator('text="手机短信验证"').count() == 0:
-        return
-
     try:
         from config import sms_func
     except ImportError:
@@ -305,7 +301,7 @@ async def sms_recognition(page, user):
         raise Exception(f"sms_func只支持{supported_sms_func}")
 
     if sms_func == "no":
-        raise Exception("需要填写验证码")
+        raise Exception("sms_func为no关闭, 跳过短信验证码识别环节")
 
     logger.info('点击【获取验证码】中')
     await page.click('button.getMsg-btn')
@@ -404,7 +400,9 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
 
             # 进行短信验证识别
             await asyncio.sleep(1)
-            await sms_recognition(page, user)
+            if await page.locator('text="手机短信验证"').count() != 0:
+                logger.info("开始短信验证码识别环节")
+                await sms_recognition(page, user)
 
         # 等待验证码通过
         logger.info("等待获取cookie...")
