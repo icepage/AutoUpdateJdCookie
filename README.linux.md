@@ -22,7 +22,19 @@
 docker pull icepage/aujc:latest
 ```
 
-### 运行
+### 手动执行main.py
+- 当需要填入短信验证码时, 需要执行main.py, 一般在新设备首次更新时会出现.
+- sms_func需要设置为manual_input, 在终端填入验证码。
+```bash
+# 运行, 如果 config.py 在当前目录则不需要加文件映射
+docker run -v /本地路径/config.py:/app/config.py icepage/aujc:latest python main.py
+```
+
+![PNG](./img/linux.png)
+
+### 长期运行
+- 程序会根据config.py中的cron_expression表达式, 定期进行更新任务
+- PS：当sms_func设置为manual_input, 在长期运行时是不适用的，因为没地方可填验证码. 
 ```bash
 # 运行, 如果 config.py 在当前目录则不需要加文件映射
 docker run -v /本地路径/config.py:/app/config.py icepage/aujc:latest

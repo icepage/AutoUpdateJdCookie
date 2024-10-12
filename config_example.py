@@ -61,9 +61,9 @@ send_info = {
     ]
 }
 
-# sms_func为填写验信验证码的模式，有3种可选，webhook待实现
+# sms_func为填写验信验证码的模式，有3种可选，如下：
 # no 关闭短信验证码识别
 # manual_input 手动在终端输入验证码
-# TODO: webhook 调用api获取验证码,可实现全自动填写验证码
+# webhook 调用api获取验证码,可实现全自动填写验证码
 sms_func = "manual_input"
 sms_webhook = "https://127.0.0.1:3000/getCode"
