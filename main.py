@@ -202,7 +202,14 @@ async def auto_shape(page, retry_times: int = 5):
         elif word.find('依次') > 0:
             logger.info(f'开始文字识别,点击中......')
             # 获取文字的顺序列表
-            target_char_list = list(re.findall(r'[\u4e00-\u9fff]+', word)[1])
+            try:
+                target_char_list = list(re.findall(r'[\u4e00-\u9fff]+', word)[1])
+            except IndexError:
+                logger.info(f'识别文字出错,刷新中......')
+                await refresh_button.click()
+                await asyncio.sleep(random.uniform(2, 4))
+                continue
+
             target_char_len = len(target_char_list)
 
             # 识别字数不对
