@@ -4,7 +4,9 @@ user_datas = {
         "password": "123456",
         "pt_pin": "123456",
         "sms_func": "webhook",
-        "sms_webhook": "https://127.0.0.1:3000/getCode"
+        "sms_webhook": "https://127.0.0.1:3000/getCode",
+        # 设置为True时, 即使账号未失效也更新
+        "force_update": False
     },
     "13500000001": {
         "password": "123456",

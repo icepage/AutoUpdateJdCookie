@@ -492,8 +492,11 @@ async def main():
             raise Exception(f"获取环境变量失败， response: {response}")
 
         user_info = response['data']
-        # 获取禁用用户
-        forbidden_users = [x for x in user_info if x['name'] == 'JD_COOKIE' and x['status'] == 1]
+
+        # 获取需强制更新pt_pin
+        force_update_pt_pins = [user_datas[key]["pt_pin"] for key in user_datas if user_datas[key].get("force_update") is True]
+        # 获取需强制和需要强制更新的users
+        forbidden_users = [x for x in user_info if x['name'] == 'JD_COOKIE' and (x['status'] == 1 or x['value'].rstrip(';').split('pt_pin=')[1] in force_update_pt_pins)]
 
         if not forbidden_users:
             logger.info("所有COOKIE环境变量正常，无需更新")
