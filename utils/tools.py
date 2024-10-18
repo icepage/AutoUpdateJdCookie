@@ -363,3 +363,32 @@ async def send_request(url: str, method: str, headers: Dict[str, Any], data: Dic
     async with aiohttp.ClientSession() as session:
         async with session.request(method, url=url, json=data, headers=headers, **kwargs) as response:
             return await response.json()
+
+
+def validate_proxy_config(proxy):
+    # 验证 server 是否为有效的 URL 地址
+    server = proxy.get("server")
+    username = proxy.get("username")
+    password = proxy.get("password")
+
+    # 使用正则表达式来检查 server 是否是有效的 URL
+    url_pattern = re.compile(
+        r'^(http|https|socks5)://'
+        r'(?:(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,6}|'  # 域名
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'    # 或者IP地址
+        r'(?::\d+)?'                              # 可选端口
+        r'(?:/.*)?$'                              # 可选路径
+    )
+
+    if not server or not url_pattern.match(server):
+        return False, "代理的server URL异常"
+
+    # 检查 username 是否为空，若为空则忽略 password 的检查
+    if username:
+        if not password:
+            return False, "代理只有账号, 缺少密码配置"
+    else:
+        if password:
+            return False, "代理只有密码, 缺少账号配置"
+
+    return True, "代理配置正常可用"

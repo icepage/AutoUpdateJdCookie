@@ -8,6 +8,7 @@
 - 支持的账号类型有：
   - 账号密码登录
   - QQ登录(不会出验证码,推荐)
+- 支持代理
 ![PNG](./img/linux.png)
 
 
@@ -79,6 +80,7 @@ playwright install chromium
 - auto_shape_recognition为二次图形状验证码的开关;
 - headless设置浏览器是否启用无头模式，即是否展示整个登录过程，**必需使用True**
 - cron_expression基于cron的表达式，用于schedule_main.py定期进行更新任务;
+- proxy为JD登录的代理配置, 只会代理登录，不会代理请求QL面板和发消息;
 - 消息类的配置下面会说明;
 - 消息类的配置下面会说明
 

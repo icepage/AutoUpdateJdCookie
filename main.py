@@ -41,7 +41,8 @@ from utils.tools import (
     expand_coordinates,
     cv2_save_img,
     ddddocr_find_bytes_pic,
-    solve_slider_captcha
+    solve_slider_captcha,
+    validate_proxy_config
 )
 
 """
@@ -370,7 +371,20 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         headless = False
 
     args = '--no-sandbox', '--disable-setuid-sandbox'
-    browser = await playwright.chromium.launch(headless=headless, args=args)
+
+    try:
+        # 引入代理
+        from config import proxy
+        # 检查代理的配置
+        is_proxy_valid, msg = validate_proxy_config(proxy)
+        if not is_proxy_valid:
+            logger.error(msg)
+            proxy = None
+    except ImportError:
+        logger.info("未配置代理")
+        proxy = None
+
+    browser = await playwright.chromium.launch(headless=headless, args=args, proxy=proxy)
     context = await browser.new_context()
 
     try:
