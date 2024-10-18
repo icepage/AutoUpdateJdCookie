@@ -8,6 +8,15 @@ user_datas = {
         # 设置为True时, 即使账号未失效也更新
         "force_update": False
     },
+    # QQ账号
+    "168465451": {
+        # qq密码
+        "password": "123456",
+        "pt_pin": "123456",
+        # 指定为qq账号
+        "user_type": "qq",
+        "force_update": True
+    },
     "13500000001": {
         "password": "123456",
         "pt_pin": "123456",

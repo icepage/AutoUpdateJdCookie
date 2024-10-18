@@ -376,40 +376,73 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
     try:
         page = await context.new_page()
         await page.goto(jd_login_url)
-        await page.get_by_text("账号密码登录").click()
 
-        username_input = page.get_by_placeholder("账号名/邮箱/手机号")
-        await username_input.click()
-        for u in user:
-            await username_input.type(u, no_wait_after=True)
-            await asyncio.sleep(random.random() / 10)
-
-        password_input = page.get_by_placeholder("请输入密码")
-        await password_input.click()
-        password = user_datas[user]["password"]
-        for p in password:
-            await password_input.type(p, no_wait_after=True)
-            await asyncio.sleep(random.random() / 10)
-
-        await page.get_by_role("checkbox").check()
-        await page.get_by_text("登 录").click()
-
-        # 自动识别移动滑块验证码
-        if auto_move:
-            # 关键的sleep
+        if user_datas[user].get("user_type") == "qq":
+            await page.get_by_role("checkbox").check()
             await asyncio.sleep(1)
-            await auto_move_slide(page, retry_times=5)
+            # 点击QQ登录
+            await page.locator("a.quick-qq").click()
+            await asyncio.sleep(1)
 
-            # 自动验证形状验证码
-            if auto_shape_recognition:
+            # 等待 iframe 加载完成
+            await page.wait_for_selector("#ptlogin_iframe")
+            # 切换到 iframe
+            iframe = page.frame(name="ptlogin_iframe")
+
+            # 通过 id 选择 "密码登录" 链接并点击
+            await iframe.locator("#switcher_plogin").click()
+            await asyncio.sleep(1)
+            # 填写账号
+            username_input = iframe.locator("#u")  # 替换为实际的账号
+            for u in user:
+                await username_input.type(u, no_wait_after=True)
+                await asyncio.sleep(random.random() / 10)
+            await asyncio.sleep(1)
+            # 填写密码
+            password_input = iframe.locator("#p")  # 替换为实际的密码
+            password = user_datas[user]["password"]
+            for p in password:
+                await password_input.type(p, no_wait_after=True)
+                await asyncio.sleep(random.random() / 10)
+            await asyncio.sleep(1)
+            # 点击登录按钮
+            await iframe.locator("#login_button").click()
+
+        else:
+            await page.get_by_text("账号密码登录").click()
+
+            username_input = page.get_by_placeholder("账号名/邮箱/手机号")
+            await username_input.click()
+            for u in user:
+                await username_input.type(u, no_wait_after=True)
+                await asyncio.sleep(random.random() / 10)
+
+            password_input = page.get_by_placeholder("请输入密码")
+            await password_input.click()
+            password = user_datas[user]["password"]
+            for p in password:
+                await password_input.type(p, no_wait_after=True)
+                await asyncio.sleep(random.random() / 10)
+
+            await page.get_by_role("checkbox").check()
+            await page.get_by_text("登 录").click()
+
+            # 自动识别移动滑块验证码
+            if auto_move:
+                # 关键的sleep
                 await asyncio.sleep(1)
-                await auto_shape(page, retry_times=30)
+                await auto_move_slide(page, retry_times=5)
 
-            # 进行短信验证识别
-            await asyncio.sleep(1)
-            if await page.locator('text="手机短信验证"').count() != 0:
-                logger.info("开始短信验证码识别环节")
-                await sms_recognition(page, user)
+                # 自动验证形状验证码
+                if auto_shape_recognition:
+                    await asyncio.sleep(1)
+                    await auto_shape(page, retry_times=30)
+
+                # 进行短信验证识别
+                await asyncio.sleep(1)
+                if await page.locator('text="手机短信验证"').count() != 0:
+                    logger.info("开始短信验证码识别环节")
+                    await sms_recognition(page, user)
 
         # 等待验证码通过
         logger.info("等待获取cookie...")
