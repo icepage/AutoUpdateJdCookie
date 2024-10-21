@@ -28,9 +28,10 @@ docker pull icepage/aujc:latest
 ### 手动执行main.py
 - 当需要填入短信验证码时, 需要执行main.py, 一般在新设备首次更新时会出现.
 - sms_func需要设置为manual_input, 在终端填入验证码。
+- docker 运行需加-i参数, 由系统分配终端填写短信验证码。否则在触发短信验证码时会报错Operation not permitted
 ```bash
 # 运行, 如果 config.py 在当前目录则不需要加文件映射
-docker run -v /本地路径/config.py:/app/config.py icepage/aujc:latest python main.py
+docker run -i -v /本地路径/config.py:/app/config.py icepage/aujc:latest python main.py
 ```
 
 ![PNG](./img/linux.png)
