@@ -380,6 +380,9 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         if not is_proxy_valid:
             logger.error(msg)
             proxy = None
+        if msg == "未配置代理":
+            logger.info(msg)
+            proxy = None
     except ImportError:
         logger.info("未配置代理")
         proxy = None

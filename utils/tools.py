@@ -366,8 +366,14 @@ async def send_request(url: str, method: str, headers: Dict[str, Any], data: Dic
 
 
 def validate_proxy_config(proxy):
-    # 验证 server 是否为有效的 URL 地址
+    """
+    验证 server 是否为有效的 URL 地址
+    """
     server = proxy.get("server")
+    # 排除缺省值
+    if server == "http://":
+        return True, "未配置代理"
+
     username = proxy.get("username")
     password = proxy.get("password")
 
