@@ -3,10 +3,8 @@ import asyncio
 from api.qinglong import QlApi, QlOpenApi
 from api.send import SendApi
 from config import (
-    auto_move,
     qinglong_data,
     user_datas,
-    auto_shape_recognition,
 )
 import cv2
 import json
@@ -69,7 +67,6 @@ async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'im
     """
     自动识别移动滑块验证码
     """
-    from config import slide_difference
     for i in range(retry_times):
         logger.info(f'第{i + 1}次尝试自动移动滑块中...')
         try:
@@ -107,6 +104,9 @@ async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'im
         # 获取滑块
         slider = page.locator(slider_selector)
         await asyncio.sleep(1)
+
+        # 这里是一个标准算法偏差
+        slide_difference = 10
 
         if move_solve_type == "old":
             # 用于调试
@@ -392,6 +392,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
 
     try:
         page = await context.new_page()
+        await page.set_viewport_size({"width": 360, "height": 640})
         await page.goto(jd_login_url)
 
         if user_datas[user].get("user_type") == "qq":
@@ -428,38 +429,35 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         else:
             await page.get_by_text("账号密码登录").click()
 
-            username_input = page.get_by_placeholder("账号名/邮箱/手机号")
-            await username_input.click()
+            username_input = page.locator("#username")
             for u in user:
                 await username_input.type(u, no_wait_after=True)
                 await asyncio.sleep(random.random() / 10)
 
-            password_input = page.get_by_placeholder("请输入密码")
-            await password_input.click()
+            password_input = page.locator("#pwd")
             password = user_datas[user]["password"]
             for p in password:
                 await password_input.type(p, no_wait_after=True)
                 await asyncio.sleep(random.random() / 10)
 
-            await page.get_by_role("checkbox").check()
-            await page.get_by_text("登 录").click()
+            await asyncio.sleep(random.random())
+            await page.locator('.policy_tip-checkbox').click()
+            await asyncio.sleep(random.random())
+            await page.locator('.btn.J_ping.btn-active').click()
 
             # 自动识别移动滑块验证码
-            if auto_move:
-                # 关键的sleep
-                await asyncio.sleep(1)
-                await auto_move_slide(page, retry_times=5)
+            await asyncio.sleep(1)
+            await auto_move_slide(page, retry_times=5)
 
-                # 自动验证形状验证码
-                if auto_shape_recognition:
-                    await asyncio.sleep(1)
-                    await auto_shape(page, retry_times=30)
+            # 自动验证形状验证码
+            await asyncio.sleep(1)
+            await auto_shape(page, retry_times=30)
 
-                # 进行短信验证识别
-                await asyncio.sleep(1)
-                if await page.locator('text="手机短信验证"').count() != 0:
-                    logger.info("开始短信验证码识别环节")
-                    await sms_recognition(page, user)
+            # 进行短信验证识别
+            await asyncio.sleep(1)
+            if await page.locator('text="手机短信验证"').count() != 0:
+                logger.info("开始短信验证码识别环节")
+                await sms_recognition(page, user)
 
         # 等待验证码通过
         logger.info("等待获取cookie...")
