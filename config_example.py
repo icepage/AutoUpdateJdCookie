@@ -52,7 +52,7 @@ auto_shape_recognition = True
 cron_expression = "0 5-6 * * *"
 
 # 浏览器是否开启无头模式，即是否展示整个登录过程
-headless = False
+headless = True
 
 # 是否开启发消息
 is_send_msg = False
