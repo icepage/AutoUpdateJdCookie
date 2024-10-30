@@ -398,3 +398,10 @@ def validate_proxy_config(proxy):
             return False, "代理只有密码, 缺少账号配置"
 
     return True, "代理配置正常可用"
+
+
+def is_valid_verification_code(code: str):
+    """
+    判断验证码格式是否正确
+    """
+    return bool(re.match(r"^\d{6}$", code))
