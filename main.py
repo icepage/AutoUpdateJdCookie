@@ -425,6 +425,14 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
             await asyncio.sleep(1)
             # 点击登录按钮
             await iframe.locator("#login_button").click()
+            await asyncio.sleep(1)
+            # 这里检测安全验证
+            new_vcode_area = iframe.locator("div#newVcodeArea")
+            style = await new_vcode_area.get_attribute("style")
+            if style and "display: block" in style:
+                if await new_vcode_area.get_by_text("安全验证").text_content() == "安全验证":
+                    logger.error(f"QQ号{user}需要安全验证, 登录失败，请使用其它账号类型")
+                    raise Exception(f"QQ号{user}需要安全验证, 登录失败，请使用其它账号类型")
 
         else:
             await page.get_by_text("账号密码登录").click()
