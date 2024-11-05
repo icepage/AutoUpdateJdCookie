@@ -20,7 +20,7 @@ async def run_scheduled_tasks(cron_expression):
     while True:
         now = datetime.now()
         if now >= next_run:
-            await main()
+            await main(mode="cron")
             next_run = get_next_runtime(cron_expression, now + timedelta(seconds=1))
             logger.info(f"下次更新任务时间为{next_run}")
         await asyncio.sleep(1)

@@ -40,7 +40,7 @@ docker run -i -v $PWD/config.py:/app/config.py icepage/aujc:latest python main.p
 
 ### 长期运行
 - 程序读config.py中的cron_expression, 定期进行更新任务
-- PS：当sms_func设置为manual_input, 在长期运行时是不适用的，因为没地方可填验证码. 
+- 当sms_func设置为manual_input, 长期运行时会自动将manual_input转成no，避免滥发短信验证码, 因为没地方可填验证码. 
 ```bash
 docker run -v $PWD/config.py:/app/config.py icepage/aujc:latest
 ```
@@ -78,7 +78,7 @@ python schedule_main.py
 ```
 
 ### 3、定时任务
-使用crontab
+使用crontab. 模式定为cron, 会自动将短信配置为manual_input转成no，避免滥发短信验证码.
 ```commandline
-0 3,4 * * * python main.py
+0 3,4 * * * python main.py --mode cron
 ```
