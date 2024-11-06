@@ -1,6 +1,21 @@
 import aiohttp
+import base64
+import hashlib
+import hmac
+import time
 from typing import Dict, Any
+import urllib
 
+def generate_sign(secret):
+    """
+    钉钉加签
+    """
+    timestamp = str(round(time.time() * 1000))
+    secret_enc = secret.encode('utf-8')
+    string_to_sign = f'{timestamp}\n{secret}'.encode('utf-8')
+    hmac_code = hmac.new(secret_enc, string_to_sign, digestmod=hashlib.sha256).digest()
+    sign = urllib.parse.quote_plus(base64.b64encode(hmac_code))
+    return timestamp, sign
 
 async def send_message(url: str, data: Dict[str, Any]) -> Dict[str, Any]:
     """
@@ -46,6 +61,16 @@ class SendApi(object):
         """
         钉钉
         """
+        parsed_url = urllib.parse.urlparse(url)
+        query_params = urllib.parse.parse_qs(parsed_url.query)
+        # 必须有access_token
+        access_token = query_params["access_token"][0]
+        secret = query_params.get("secret", [None])[0]
+        url = f"https://oapi.dingtalk.com/robot/send?access_token={access_token}"
+
+        if secret:
+            timestamp, sign = generate_sign(secret)
+            url = f"{url}&timestamp={timestamp}&sign={sign}"
         data = {
             "msgtype": "text",
             "text": {
