@@ -382,8 +382,9 @@ async def sms_recognition(page, user):
 async def handle_route(route, request):
     # 继续请求并获取响应
     response = await route.continue_()
+
     # 检查响应是否有效
-    if response is not None:
+    if response and response.status == 200:
         body = await response.body()  # 获取响应体
         body_str = body.decode('utf-8')  # 将响应体转换为字符串
 
@@ -398,7 +399,7 @@ async def handle_route(route, request):
             body=body_str.encode('utf-8')
         )
     else:
-        # 如果响应无效，继续请求
+        # 如果响应无效，直接继续请求
         await route.continue_()
 
 
