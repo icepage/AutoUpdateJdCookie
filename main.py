@@ -428,7 +428,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
             'Upgrade-Insecure-Requests': '1',
         })
         js = "Object.defineProperties(navigator, {webdriver:{get:()=>undefined}});"
-        page.add_init_script(js)
+        await page.add_init_script(js)
         await page.goto(jd_login_url)
         await page.wait_for_load_state()
         await page.screenshot(path='screenshot_before_login.png')
