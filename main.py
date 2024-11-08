@@ -388,12 +388,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         headless = False
 
     args = '--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled', '--ignore-certificate-errors'
-    # 设置缓存目录为当前目录下的 cache 文件夹
-    current_directory = os.getcwd()  # 获取当前工作目录
-    cache_directory = os.path.join(
-        current_directory, 'cache')  # 拼接成 cache 文件夹路径
-    # 创建 cache 文件夹（如果不存在）
-    os.makedirs(cache_directory, exist_ok=True)
+
     try:
         # 引入代理
         from config import proxy
@@ -409,8 +404,8 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         logger.info("未配置代理")
         proxy = None
 
-    context = await playwright.chromium.launch_persistent_context(headless=headless, args=args, user_data_dir=cache_directory, proxy=proxy)
-    # context = await browser.new_context()
+    browser = await playwright.chromium.launch(headless=headless, args=args, proxy=proxy)
+    context = await browser.new_context()
 
     try:
         page = await context.new_page()
@@ -436,7 +431,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         await page.add_init_script(js)
         await page.goto(jd_login_url)
         await page.wait_for_load_state("networkidle")
-        await page.screenshot(path='screenshot_login.png')
+        await page.screenshot(path='screenshot_before_login.png')
         print(await page.content())
         await page.wait_for_selector("text=账号密码登录", timeout=60000)
         await page.get_by_text("账号密码登录").click(timeout=60000)
@@ -487,9 +482,9 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         traceback.print_exc()
         return None
 
-    # finally:
-        # await context.close()
-        # await browser.close()
+    finally:
+        await context.close()
+        await browser.close()
 
 
 async def get_ql_api(ql_data):
