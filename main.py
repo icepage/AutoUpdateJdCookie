@@ -377,25 +377,29 @@ async def sms_recognition(page, user):
     await page.click('a.btn')
 
 # 拦截请求并修改响应
+
+
 async def handle_route(route, request):
     # 继续请求并获取响应
     response = await route.continue_()
-    body = await response.body()  # 获取响应体
+    # 检查响应是否有效
+    if response is not None:
+        body = await response.body()  # 获取响应体
+        body_str = body.decode('utf-8')  # 将响应体转换为字符串
 
-    # 将响应体转换为字符串
-    body_str = body.decode('utf-8')
+        # 删除特定的元素
+        body_str = body_str.replace(
+            '<div id="shSafetyPV" style="display: none;"></div>', '')
 
-    # 删除特定的元素
-    # 例如，删除 <div id="shSafetyPV"> 的代码
-    body_str = body_str.replace(
-        '<div id="shSafetyPV" style="display: none;"></div>', '')
-
-    # 返回修改后的响应
-    await route.fulfill(
-        status=response.status,
-        headers=response.headers,
-        body=body_str.encode('utf-8')
-    )
+        # 返回修改后的响应
+        await route.fulfill(
+            status=response.status,
+            headers=response.headers,
+            body=body_str.encode('utf-8')
+        )
+    else:
+        # 如果响应无效，继续请求
+        await route.continue_()
 
 
 async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
