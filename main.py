@@ -61,7 +61,8 @@ async def download_image(url, filepath):
                     f.write(await response.read())
                 print(f"Image downloaded to {filepath}")
             else:
-                print(f"Failed to download image. Status code: {response.status}")
+                print(
+                    f"Failed to download image. Status code: {response.status}")
 
 
 async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'img.move-img', move_solve_type: str = ""):
@@ -88,18 +89,24 @@ async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'im
 
         # 保存小图
         small_img_path = save_img('small_img', small_img_bytes)
-        small_img_width = await page.evaluate('() => { return document.getElementById("small_img").clientWidth; }')  # 获取网页的图片尺寸
-        small_img_height = await page.evaluate('() => { return document.getElementById("small_img").clientHeight; }')  # 获取网页的图片尺寸
+        # 获取网页的图片尺寸
+        small_img_width = await page.evaluate('() => { return document.getElementById("small_img").clientWidth; }')
+        # 获取网页的图片尺寸
+        small_img_height = await page.evaluate('() => { return document.getElementById("small_img").clientHeight; }')
         small_image = Image.open(small_img_path)  # 打开图像
-        resized_small_image = small_image.resize((small_img_width, small_img_height))  # 调整图像尺寸
+        resized_small_image = small_image.resize(
+            (small_img_width, small_img_height))  # 调整图像尺寸
         resized_small_image.save(small_img_path)  # 保存调整后的图像
 
         # 保存大图
         background_img_path = save_img('background_img', background_img_bytes)
-        background_img_width = await page.evaluate('() => { return document.getElementById("cpc_img").clientWidth; }')  # 获取网页的图片尺寸
-        background_img_height = await page.evaluate('() => { return document.getElementById("cpc_img").clientHeight; }')  # 获取网页的图片尺寸
+        # 获取网页的图片尺寸
+        background_img_width = await page.evaluate('() => { return document.getElementById("cpc_img").clientWidth; }')
+        # 获取网页的图片尺寸
+        background_img_height = await page.evaluate('() => { return document.getElementById("cpc_img").clientHeight; }')
         background_image = Image.open(background_img_path)  # 打开图像
-        resized_background_image = background_image.resize((background_img_width, background_img_height))  # 调整图像尺寸
+        resized_background_image = background_image.resize(
+            (background_img_width, background_img_height))  # 调整图像尺寸
         resized_background_image.save(background_img_path)  # 保存调整后的图像
 
         # 获取滑块
@@ -111,7 +118,8 @@ async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'im
 
         if move_solve_type == "old":
             # 用于调试
-            distance = ddddocr_find_bytes_pic(small_img_bytes, background_img_bytes)
+            distance = ddddocr_find_bytes_pic(
+                small_img_bytes, background_img_bytes)
             await asyncio.sleep(1)
             await solve_slider_captcha(page, slider, distance, slide_difference)
             await asyncio.sleep(1)
@@ -162,7 +170,6 @@ async def auto_shape(page, retry_times: int = 5):
         # 找到刷新按钮
         refresh_button = page.locator('.jcap_refresh')
 
-
         # 获取文字图并保存
         word_img_bytes = get_img_bytes(word_img_src)
         rgba_word_img_path = save_img('rgba_word_img', word_img_bytes)
@@ -178,7 +185,8 @@ async def auto_shape(page, retry_times: int = 5):
             if target_color in supported_colors:
                 logger.info(f'正在点击中......')
                 # 获取点的中心点
-                center_x, center_y = get_shape_location_by_color(background_img_path, target_color)
+                center_x, center_y = get_shape_location_by_color(
+                    background_img_path, target_color)
                 if center_x is None and center_y is None:
                     logger.info(f'识别失败,刷新中......')
                     await refresh_button.click()
@@ -205,7 +213,8 @@ async def auto_shape(page, retry_times: int = 5):
             logger.info(f'开始文字识别,点击中......')
             # 获取文字的顺序列表
             try:
-                target_char_list = list(re.findall(r'[\u4e00-\u9fff]+', word)[1])
+                target_char_list = list(
+                    re.findall(r'[\u4e00-\u9fff]+', word)[1])
             except IndexError:
                 logger.info(f'识别文字出错,刷新中......')
                 await refresh_button.click()
@@ -236,7 +245,8 @@ async def auto_shape(page, retry_times: int = 5):
                 # 左上角
                 x1, y1, x2, y2 = bbox
                 # 做了一下扩大
-                expanded_x1, expanded_y1, expanded_x2, expanded_y2 = expand_coordinates(x1, y1, x2, y2, 10)
+                expanded_x1, expanded_y1, expanded_x2, expanded_y2 = expand_coordinates(
+                    x1, y1, x2, y2, 10)
                 im2 = im[expanded_y1:expanded_y2, expanded_x1:expanded_x2]
                 img_path = cv2_save_img('word', im2)
                 image_bytes = open(img_path, "rb").read()
@@ -275,7 +285,8 @@ async def auto_shape(page, retry_times: int = 5):
                 if shape_type == "圆环":
                     shape_type = shape_type.replace('圆环', '圆形')
                 # 获取点的中心点
-                center_x, center_y = get_shape_location_by_type(background_img_path, shape_type)
+                center_x, center_y = get_shape_location_by_type(
+                    background_img_path, shape_type)
                 if center_x is None and center_y is None:
                     logger.info(f'识别失败,刷新中......')
                     await refresh_button.click()
@@ -365,6 +376,7 @@ async def sms_recognition(page, user):
     logger.info('点击提交中...')
     await page.click('a.btn')
 
+
 async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
     """
     获取jd的pt_key
@@ -394,25 +406,26 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
 
     browser = await playwright.chromium.launch(headless=headless, args=args, proxy=proxy)
     context = await browser.new_context()
-    await page.set_extra_http_headers({
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Encoding': 'gzip, deflate, br, zstd',
-        'Accept-Language': 'zh,zh-CN;q=0.9,en;q=0.8',
-        'DNT': '1',
-        'Pragma': 'no-cache',
-        'Cache-Control': 'no-cache',
-        'Sec-CH-UA': '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
-        'Sec-CH-UA-Mobile': '?0',
-        'Sec-CH-UA-Platform': '"macOS"',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Sec-Fetch-User': '?1',
-        'Upgrade-Insecure-Requests': '1',
-    })
+
     try:
         page = await context.new_page()
+        await page.set_extra_http_headers({
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+            'Accept-Encoding': 'gzip, deflate, br, zstd',
+            'Accept-Language': 'zh,zh-CN;q=0.9,en;q=0.8',
+            'DNT': '1',
+            'Pragma': 'no-cache',
+            'Cache-Control': 'no-cache',
+            'Sec-CH-UA': '"Chromium";v="130", "Google Chrome";v="130", "Not?A_Brand";v="99"',
+            'Sec-CH-UA-Mobile': '?0',
+            'Sec-CH-UA-Platform': '"macOS"',
+            'Sec-Fetch-Dest': 'document',
+            'Sec-Fetch-Mode': 'navigate',
+            'Sec-Fetch-Site': 'none',
+            'Sec-Fetch-User': '?1',
+            'Upgrade-Insecure-Requests': '1',
+        })
         await page.set_viewport_size({"width": 360, "height": 640})
         await page.goto(jd_login_url)
         await page.wait_for_load_state("networkidle")
@@ -574,16 +587,19 @@ async def main():
         user_info = response['data']
 
         # 获取需强制更新pt_pin
-        force_update_pt_pins = [user_datas[key]["pt_pin"] for key in user_datas if user_datas[key].get("force_update") is True]
+        force_update_pt_pins = [user_datas[key]["pt_pin"]
+                                for key in user_datas if user_datas[key].get("force_update") is True]
         # 获取需强制和需要强制更新的users
-        forbidden_users = [x for x in user_info if x['name'] == 'JD_COOKIE' and (x['status'] == 1 or x['value'].rstrip(';').split('pt_pin=')[1] in force_update_pt_pins)]
+        forbidden_users = [x for x in user_info if x['name'] == 'JD_COOKIE' and (
+            x['status'] == 1 or x['value'].rstrip(';').split('pt_pin=')[1] in force_update_pt_pins)]
 
         if not forbidden_users:
             logger.info("所有COOKIE环境变量正常，无需更新")
             return
 
         # 获取需要的字段
-        filter_users_list = filter_forbidden_users(forbidden_users, ['id', 'value', 'remarks', 'name'])
+        filter_users_list = filter_forbidden_users(
+            forbidden_users, ['id', 'value', 'remarks', 'name'])
 
         # 生成字典
         user_dict = get_forbidden_users_dict(filter_users_list, user_datas)
