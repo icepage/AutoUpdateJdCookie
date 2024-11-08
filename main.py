@@ -376,6 +376,7 @@ async def sms_recognition(page, user):
     logger.info('点击提交中...')
     await page.click('a.btn')
 
+
 async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
     """
     获取jd的pt_key
@@ -386,7 +387,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
     except ImportError:
         headless = False
 
-    args = '--no-sandbox', '--disable-setuid-sandbox', '--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+    args = '--no-sandbox', '--disable-setuid-sandbox', '--ignore-certificate-errors', '--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
 
     try:
         # 引入代理
@@ -426,6 +427,8 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
             'Sec-Fetch-User': '?1',
             'Upgrade-Insecure-Requests': '1',
         })
+        js = "Object.defineProperties(navigator, {webdriver:{get:()=>undefined}});"
+        page.add_init_script(js)
         await page.goto(jd_login_url)
         await page.wait_for_load_state("networkidle")
         await page.screenshot(path='screenshot_before_login.png')
