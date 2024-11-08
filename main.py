@@ -376,33 +376,6 @@ async def sms_recognition(page, user):
     logger.info('点击提交中...')
     await page.click('a.btn')
 
-# 拦截请求并修改响应
-
-
-async def handle_route(route, request):
-    # 继续请求并获取响应
-    response = await route.continue_()
-
-    # 检查响应是否有效
-    if response and response.status == 200:
-        body = await response.body()  # 获取响应体
-        body_str = body.decode('utf-8')  # 将响应体转换为字符串
-
-        # 删除特定的元素
-        body_str = body_str.replace(
-            '<div id="shSafetyPV" style="display: none;"></div>', '')
-
-        # 返回修改后的响应
-        await route.fulfill(
-            status=response.status,
-            headers=response.headers,
-            body=body_str.encode('utf-8')
-        )
-    else:
-        # 如果响应无效，直接继续请求
-        await route.continue_()
-
-
 async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
     """
     获取jd的pt_key
@@ -413,7 +386,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
     except ImportError:
         headless = False
 
-    args = '--no-sandbox', '--disable-setuid-sandbox'
+    args = '--no-sandbox', '--disable-setuid-sandbox', '--user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
 
     try:
         # 引入代理
@@ -435,9 +408,6 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
 
     try:
         page = await context.new_page()
-
-        # 拦截请求
-        await page.route("**/*", handle_route)
         await page.set_viewport_size({"width": 360, "height": 640})
         await page.set_extra_http_headers({
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
