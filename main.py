@@ -428,6 +428,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         })
         await page.goto(jd_login_url)
         await page.wait_for_load_state("networkidle")
+        await page.screenshot(path='screenshot_before_login.png')
         print(await page.content())
 
         if user_datas[user].get("user_type") == "qq":
@@ -470,6 +471,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
                     raise Exception(f"QQ号{user}需要安全验证, 登录失败，请使用其它账号类型")
 
         else:
+            await page.screenshot(path='screenshot_after_login.png')
             await page.wait_for_selector("text=账号密码登录", timeout=60000)
             await page.get_by_text("账号密码登录").click(timeout=60000)
 
