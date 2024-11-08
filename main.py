@@ -431,10 +431,9 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         await page.add_init_script(js)
         await page.goto(jd_login_url)
         await page.wait_for_load_state("networkidle")
-        await page.screenshot(path='screenshot_before_login.png')
         print(await page.content())
         await page.wait_for_selector("text=账号密码登录", timeout=60000)
-        await page.get_by_text("账号密码登录").click(timeout=60000)
+        await page.get_by_text("账号密码登录").click()
 
         username_input = page.locator("#username")
         for u in user:
@@ -451,7 +450,6 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         await page.locator('.policy_tip-checkbox').click()
         await asyncio.sleep(random.random())
         await page.locator('.btn.J_ping.btn-active').click()
-
         # 自动识别移动滑块验证码
         await asyncio.sleep(1)
         await auto_move_slide(page, retry_times=5)
@@ -465,7 +463,6 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         if await page.locator('text="手机短信验证"').count() != 0:
             logger.info("开始短信验证码识别环节")
             await sms_recognition(page, user)
-
         # 等待验证码通过
         logger.info("等待获取cookie...")
         await page.wait_for_selector('#msShortcutMenu', state='visible', timeout=120000)
