@@ -409,8 +409,8 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
         logger.info("未配置代理")
         proxy = None
 
-    browser = await playwright.chromium.launch(headless=headless, args=args, proxy=proxy)
-    context = await browser.new_context(user_data_dir=cache_directory)
+    browser = await playwright.chromium.launch(headless=headless, args=args, user_data_dir=cache_directory, proxy=proxy)
+    context = await browser.new_context()
 
     try:
         page = await context.new_page()
