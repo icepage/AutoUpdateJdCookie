@@ -409,6 +409,7 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
 
     try:
         page = await context.new_page()
+        await page.set_viewport_size({"width": 360, "height": 640})
         await page.set_extra_http_headers({
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -426,7 +427,6 @@ async def get_jd_pt_key(playwright: Playwright, user) -> Union[str, None]:
             'Sec-Fetch-User': '?1',
             'Upgrade-Insecure-Requests': '1',
         })
-        await page.set_viewport_size({"width": 360, "height": 640})
         await page.goto(jd_login_url)
         await page.wait_for_load_state("networkidle")
         print(await page.content())
