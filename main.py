@@ -578,12 +578,15 @@ async def main(mode: str = None):
 
         # 登录JD获取pt_key
         async with async_playwright() as playwright:
+            success_users = []
+            failed_users = []
+
             for user in user_dict:
                 logger.info(f"开始更新{user}")
                 pt_key = await get_jd_pt_key(playwright, user, mode)
                 if pt_key is None:
                     logger.error(f"获取pt_key失败")
-                    await send_msg(send_api, send_type=1, msg=f"{user} 更新失败")
+                    failed_users.append(user)
                     continue
 
                 req_data = user_dict[user]
@@ -593,19 +596,40 @@ async def main(mode: str = None):
                 response = await qlapi.set_envs(data=data)
                 if response['code'] == 200:
                     logger.info(f"{user}更新成功")
+                    success_users.append(user)
                 else:
                     logger.error(f"{user}更新失败, response: {response}")
-                    await send_msg(send_api, send_type=1, msg=f"{user} 更新失败")
+                    failed_users.append(user)
                     continue
 
                 data = bytes(f"[{req_data['id']}]", 'utf-8')
                 response = await qlapi.envs_enable(data=data)
                 if response['code'] == 200:
                     logger.info(f"{user}启用成功")
-                    await send_msg(send_api, send_type=0, msg=f"{user} 更新成功")
                 else:
                     logger.error(f"{user}启用失败, response: {response}")
 
+            # 处理用户名隐私
+            def mask_username(username):
+                if len(username) > 8:  # 确保用户名长度足够进行替换
+                    start = len(username) // 2 - 2
+                    return username[:start] + '****' + username[start + 4:]
+                return username  # 如果用户名长度不足，则不进行修改
+
+            masked_success_users = [mask_username(user) for user in success_users]
+            masked_failed_users = [mask_username(user) for user in failed_users]
+    		
+            # 附加消息
+            additional_message = "\n 解决办法：ABCD！"
+
+            # 最终发送消息
+            if masked_success_users:
+                success_msg = "更新成功的用户:\n" + "\n".join(masked_success_users) + "\n"
+                await send_msg(send_api, send_type=0, msg=success_msg)
+            if masked_failed_users:
+                failed_msg = "更新失败的用户:\n" + "\n".join(masked_failed_users) + "\n" + additional_message
+                await send_msg(send_api, send_type=1, msg=failed_msg)
+        
     except Exception as e:
         traceback.print_exc()
 
