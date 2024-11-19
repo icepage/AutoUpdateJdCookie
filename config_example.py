@@ -5,7 +5,9 @@ user_datas = {
         "pt_pin": "123456",
         "sms_func": "webhook",
         "sms_webhook": "https://127.0.0.1:3000/getCode",
-        # 设置为True时, 即使账号未失效也更新
+         # 设置账号备注，如果用中文，必须确保 config.py 文件格式是 UTF-8 。
+        "remark": "abc",
+       # 设置为True时, 即使账号未失效也更新
         "force_update": False
     },
     # QQ账号
@@ -15,6 +17,8 @@ user_datas = {
         "pt_pin": "123456",
         # 指定为qq账号
         "user_type": "qq",
+         # 设置账号备注
+        "remark": "abc",
         "force_update": True
     },
     "13500000001": {
@@ -42,6 +46,12 @@ qinglong_data = {
 # 定时器
 cron_expression = "0 5-6 * * *"
 
+MESSAGE_TIME_RANGES = [
+    ("06:00", "08:00"),
+    ("11:00", "13:00"),
+    ("18:00", "20:00")
+]  # 允许发送消息的多个时间段，有效减少通知次数。注意定时器的执行时间，定时器设置执行的时间要在允许发消息的时间段内，否则消息是不会被发送的。
+
 # 浏览器是否开启无头模式，即是否展示整个登录过程
 headless = True
 
@@ -67,6 +77,10 @@ send_info = {
 # 企业微信应用通道填写实例：
 # "corpid,corpsecret,touser,agentid,mediaid"
 # touser 是全体用户的话可以填 @all，mediaid 如果不填就是指消息卡片上没有图片,参考文档：http://note.youdao.com/s/HMiudGkb
+
+ADDITIONAL_MESSAGE = (
+    "解决方法：。。。。。。"
+)  # 更新错误时可添加的附加消息，注意如果用中文，必须确保 config.py 文件格式是 UTF-8 。
 
 # sms_func为填写验信验证码的模式，有3种可选，如下：
 # no 关闭短信验证码识别
