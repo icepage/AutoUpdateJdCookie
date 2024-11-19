@@ -1,11 +1,14 @@
 import aiohttp
 import argparse
 import asyncio
+from datetime import datetime
 from api.qinglong import QlApi, QlOpenApi
 from api.send import SendApi
 from config import (
     qinglong_data,
     user_datas,
+    MESSAGE_TIME_RANGES,
+    ADDITIONAL_MESSAGE 
 )
 import cv2
 import json
@@ -616,20 +619,25 @@ async def main(mode: str = None):
                     return username[:start] + '****' + username[start + 4:]
                 return username  # 如果用户名长度不足，则不进行修改
 
-            masked_success_users = [mask_username(user) for user in success_users]
-            masked_failed_users = [mask_username(user) for user in failed_users]
-    		
-            # 附加消息
-            additional_message = "\n 解决办法：ABCD！"
+            masked_success_users = ["[" + user_datas.get(user, {}).get("remark", "NoMark") + "] " + mask_username(user) for user in success_users]
+            masked_failed_users  = ["[" + user_datas.get(user, {}).get("remark", "NoMark") + "] " + mask_username(user) for user in failed_users]
 
             # 最终发送消息
-            if masked_success_users:
-                success_msg = "更新成功的用户:\n" + "\n".join(masked_success_users) + "\n"
-                await send_msg(send_api, send_type=0, msg=success_msg)
-            if masked_failed_users:
-                failed_msg = "更新失败的用户:\n" + "\n".join(masked_failed_users) + "\n" + additional_message
-                await send_msg(send_api, send_type=1, msg=failed_msg)
-        
+            current_time = datetime.now().strftime("%H:%M")
+
+            can_send_message = any(start <= current_time <= end for start, end in MESSAGE_TIME_RANGES)
+
+            if can_send_message:
+                logger.info(f"当前时间 {current_time} 在允许的时间段内，发送消息。")
+                if masked_success_users:
+                    success_msg = "更新成功的用户:\n" + "\n".join(masked_success_users) + "\n"
+                    await send_msg(send_api, send_type=0, msg=success_msg)
+                if masked_failed_users:
+                    failed_msg = "更新失败的用户:\n" + "\n".join(masked_failed_users) + "\n" + ADDITIONAL_MESSAGE
+                    await send_msg(send_api, send_type=1, msg=failed_msg)
+            else:
+                logger.info(f"当前时间 {current_time} 不在允许的时间段内，消息不会被发送。")
+
     except Exception as e:
         traceback.print_exc()
 
