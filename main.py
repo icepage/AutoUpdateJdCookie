@@ -400,7 +400,10 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
         proxy = None
 
     browser = await playwright.chromium.launch(headless=headless, args=args, proxy=proxy)
-    context = await browser.new_context()
+    context = await browser.new_context(
+        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
+        # 无头模式会被网站检测出来，所以加上这个。
+    )
 
     try:
         page = await context.new_page()
@@ -481,7 +484,8 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
 
         # 等待验证码通过
         logger.info("等待获取cookie...")
-        await page.wait_for_selector('#msShortcutMenu', state='visible', timeout=120000)
+        await page.wait_for_load_state('load')
+        #不要傻等 msShortcutMenu 出现了。
 
         cookies = await context.cookies()
         for cookie in cookies:
