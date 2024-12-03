@@ -1,11 +1,14 @@
 import aiohttp
 import argparse
 import asyncio
+from datetime import datetime
 from api.qinglong import QlApi, QlOpenApi
 from api.send import SendApi
 from config import (
     qinglong_data,
     user_datas,
+    MESSAGE_TIME_RANGES,
+    ADDITIONAL_MESSAGE 
 )
 import cv2
 import json
@@ -397,7 +400,10 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
         proxy = None
 
     browser = await playwright.chromium.launch(headless=headless, args=args, proxy=proxy)
-    context = await browser.new_context()
+    context = await browser.new_context(
+        user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
+        # 无头模式会被网站检测出来，所以加上这个。
+    )
 
     try:
         page = await context.new_page()
@@ -478,7 +484,8 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
 
         # 等待验证码通过
         logger.info("等待获取cookie...")
-        await page.wait_for_selector('#msShortcutMenu', state='visible', timeout=120000)
+        await page.wait_for_load_state('load')
+        #不要傻等 msShortcutMenu 出现了。
 
         cookies = await context.cookies()
         for cookie in cookies:
@@ -578,12 +585,15 @@ async def main(mode: str = None):
 
         # 登录JD获取pt_key
         async with async_playwright() as playwright:
+            success_users = []
+            failed_users = []
+
             for user in user_dict:
                 logger.info(f"开始更新{user}")
                 pt_key = await get_jd_pt_key(playwright, user, mode)
                 if pt_key is None:
                     logger.error(f"获取pt_key失败")
-                    await send_msg(send_api, send_type=1, msg=f"{user} 更新失败")
+                    failed_users.append(user)
                     continue
 
                 req_data = user_dict[user]
@@ -593,18 +603,44 @@ async def main(mode: str = None):
                 response = await qlapi.set_envs(data=data)
                 if response['code'] == 200:
                     logger.info(f"{user}更新成功")
+                    success_users.append(user)
                 else:
                     logger.error(f"{user}更新失败, response: {response}")
-                    await send_msg(send_api, send_type=1, msg=f"{user} 更新失败")
+                    failed_users.append(user)
                     continue
 
                 data = bytes(f"[{req_data['id']}]", 'utf-8')
                 response = await qlapi.envs_enable(data=data)
                 if response['code'] == 200:
                     logger.info(f"{user}启用成功")
-                    await send_msg(send_api, send_type=0, msg=f"{user} 更新成功")
                 else:
                     logger.error(f"{user}启用失败, response: {response}")
+
+            # 处理用户名隐私
+            def mask_username(username):
+                if len(username) > 8:  # 确保用户名长度足够进行替换
+                    start = len(username) // 2 - 2
+                    return username[:start] + '****' + username[start + 4:]
+                return username  # 如果用户名长度不足，则不进行修改
+
+            masked_success_users = ["[" + user_datas.get(user, {}).get("remark", "NoMark") + "] " + mask_username(user) for user in success_users]
+            masked_failed_users  = ["[" + user_datas.get(user, {}).get("remark", "NoMark") + "] " + mask_username(user) for user in failed_users]
+
+            # 最终发送消息
+            current_time = datetime.now().strftime("%H:%M")
+
+            can_send_message = any(start <= current_time <= end for start, end in MESSAGE_TIME_RANGES)
+
+            if can_send_message:
+                logger.info(f"当前时间 {current_time} 在允许的时间段内，发送消息。")
+                if masked_success_users:
+                    success_msg = "更新成功的用户:\n" + "\n".join(masked_success_users) + "\n"
+                    await send_msg(send_api, send_type=0, msg=success_msg)
+                if masked_failed_users:
+                    failed_msg = "更新失败的用户:\n" + "\n".join(masked_failed_users) + "\n" + ADDITIONAL_MESSAGE
+                    await send_msg(send_api, send_type=1, msg=failed_msg)
+            else:
+                logger.info(f"当前时间 {current_time} 不在允许的时间段内，消息不会被发送。")
 
     except Exception as e:
         traceback.print_exc()
