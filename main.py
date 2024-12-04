@@ -484,8 +484,8 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
 
         # 等待验证码通过
         logger.info("等待获取cookie...")
-        await page.wait_for_load_state('load')
-        #不要傻等 msShortcutMenu 出现了。
+        await page.wait_for_load_state('load', timeout=10000)
+        #不要等 msShortcutMenu 出现了。
 
         cookies = await context.cookies()
         for cookie in cookies:
