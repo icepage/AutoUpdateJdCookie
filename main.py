@@ -397,7 +397,12 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
         proxy = None
 
     browser = await playwright.chromium.launch(headless=headless, args=args, proxy=proxy)
-    context = await browser.new_context(user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36')
+    try:
+        # 引入UA
+        from config import user_agent
+    except ImportError:
+        from utils.consts import user_agent
+    context = await browser.new_context(user_agent=user_agent)
 
     try:
         page = await context.new_page()
