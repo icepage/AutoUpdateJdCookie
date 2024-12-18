@@ -130,6 +130,8 @@ async def auto_shape(page, retry_times: int = 5):
     ocr = get_ocr(beta=True)
     # 文字识别
     det = get_ocr(det=True)
+    # 自己训练的ocr, 提高文字识别度
+    my_ocr = get_ocr(det=False, ocr=False, import_onnx_path="myocr_v1.onnx", charsets_path="charsets.json")
     """
     自动识别滑块验证码
     """
@@ -216,11 +218,14 @@ async def auto_shape(page, retry_times: int = 5):
             target_char_len = len(target_char_list)
 
             # 识别字数不对
-            if target_char_len != 4:
-                logger.info(f'识别的字数不对,刷新中......')
+            if target_char_len < 4:
+                logger.info(f'识别的字数小于4,刷新中......')
                 await refresh_button.click()
                 await asyncio.sleep(random.uniform(2, 4))
                 continue
+
+            # 取前4个的文字
+            target_char_list = target_char_list[:4]
 
             # 定义【文字, 坐标】的列表
             target_list = [[x, []] for x in target_char_list]
@@ -241,7 +246,7 @@ async def auto_shape(page, retry_times: int = 5):
                 im2 = im[expanded_y1:expanded_y2, expanded_x1:expanded_x2]
                 img_path = cv2_save_img('word', im2)
                 image_bytes = open(img_path, "rb").read()
-                result = ocr.classification(image_bytes, png_fix=True)
+                result = my_ocr.classification(image_bytes)
                 if result in target_char_list:
                     for index, target in enumerate(target_list):
                         if result == target[0] and target[0] is not None:
@@ -256,6 +261,7 @@ async def auto_shape(page, retry_times: int = 5):
                 await asyncio.sleep(random.uniform(2, 4))
                 continue
 
+            await asyncio.sleep(random.uniform(0, 1))
             for char in target_list:
                 center_x = char[1][0]
                 center_y = char[1][1]
