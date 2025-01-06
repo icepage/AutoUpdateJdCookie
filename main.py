@@ -12,6 +12,7 @@ import json
 from loguru import logger
 import os
 from playwright.async_api import Playwright, async_playwright
+from playwright._impl._errors import TimeoutError
 import random
 import re
 from PIL import Image  # 用于图像处理
@@ -63,6 +64,25 @@ async def download_image(url, filepath):
                 print(f"Image downloaded to {filepath}")
             else:
                 print(f"Failed to download image. Status code: {response.status}")
+
+
+async def is_account_at_risk(page):
+    logger.info("判读您的账号是否存在风险")
+    risk_notice = "您的账号存在风险，为了您的账号安全请到京东商城App登录"
+    try:
+        await page.wait_for_function(
+            f"""
+            () => {{
+                const notice = document.querySelectorAll('.notice')[1];
+                return notice && notice.textContent.trim() === "{risk_notice}";
+            }}
+            """,
+            timeout = 3000
+        )
+        raise RuntimeError(risk_notice)
+    except TimeoutError:
+        logger.info("您的账号不存在风险")
+        return
 
 
 async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'img.move-img', move_solve_type: str = ""):
@@ -472,6 +492,9 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
             await page.locator('.policy_tip-checkbox').click()
             await asyncio.sleep(random.random())
             await page.locator('.btn.J_ping.btn-active').click()
+
+            # 判断是否账号存在风险
+            await is_account_at_risk(page)
 
             # 自动识别移动滑块验证码
             await asyncio.sleep(1)
