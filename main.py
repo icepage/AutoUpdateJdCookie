@@ -491,10 +491,7 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
             await asyncio.sleep(random.random())
             await page.locator('.policy_tip-checkbox').click()
             await asyncio.sleep(random.random())
-            await page.locator('.btn.J_ping.btn-active').click()
-
-            # 判断是否账号存在风险
-            await is_account_at_risk(page)
+            await page.locator('.btn.J_ping.active').click()
 
             # 自动识别移动滑块验证码
             await asyncio.sleep(1)
@@ -509,6 +506,9 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
             if await page.locator('text="手机短信验证"').count() != 0:
                 logger.info("开始短信验证码识别环节")
                 await sms_recognition(page, user, mode)
+
+            # 判断是否账号存在风险
+            await is_account_at_risk(page)
 
         # 等待验证码通过
         logger.info("等待获取cookie...")
