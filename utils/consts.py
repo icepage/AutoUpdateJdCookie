@@ -30,4 +30,4 @@ supported_sms_func = [
     "manual_input"
 ]
 # 默认的UA, 可以在config.py里配置
-user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36'
+user_agent = 'Mozilla/5.0 Chrome'
