@@ -604,7 +604,7 @@ async def main(mode: str = None):
             return
 
         # 获取需要的字段
-        filter_users_list = filter_forbidden_users(forbidden_users, ['id', 'value', 'remarks', 'name'])
+        filter_users_list = filter_forbidden_users(forbidden_users, ['_id', 'id', 'value', 'remarks', 'name'])
 
         # 生成字典
         user_dict = get_forbidden_users_dict(filter_users_list, user_datas)
@@ -631,7 +631,8 @@ async def main(mode: str = None):
                     await send_msg(send_api, send_type=1, msg=f"{user} 更新失败")
                     continue
 
-                data = bytes(f"[{req_data['id']}]", 'utf-8')
+                req_id = f"[{req_data['id']}]" if 'id' in req_data.keys() else f'[\"{req_data["_id"]}\"]'
+                data = bytes(req_id, 'utf-8')
                 response = await qlapi.envs_enable(data=data)
                 if response['code'] == 200:
                     logger.info(f"{user}启用成功")
