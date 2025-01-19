@@ -66,22 +66,21 @@ async def download_image(url, filepath):
                 print(f"Failed to download image. Status code: {response.status}")
 
 
-async def is_account_at_risk(page):
-    logger.info("判读您的账号是否存在风险")
-    risk_notice = "您的账号存在风险，为了您的账号安全请到京东商城App登录"
+async def check_notice(page):
     try:
-        await page.wait_for_function(
-            f"""
-            () => {{
+        logger.info("检查登录是否报错")
+        notice = await page.wait_for_function(
+            """
+            () => {
                 const notice = document.querySelectorAll('.notice')[1];
-                return notice && notice.textContent.trim() === "{risk_notice}";
-            }}
+                return notice && notice.textContent.trim() !== '' ? notice.textContent.trim() : false;
+            }
             """,
             timeout = 3000
         )
-        raise RuntimeError(risk_notice)
+        raise RuntimeError(notice)
     except TimeoutError:
-        logger.info("您的账号不存在风险")
+        logger.info("登录未发现报错")
         return
 
 
@@ -507,8 +506,8 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
                 logger.info("开始短信验证码识别环节")
                 await sms_recognition(page, user, mode)
 
-            # 判断是否账号存在风险
-            await is_account_at_risk(page)
+            # 检查警告,如账号存在风险或账密不正确等
+            await check_notice(page)
 
         # 等待验证码通过
         logger.info("等待获取cookie...")
