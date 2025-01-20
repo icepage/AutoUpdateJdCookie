@@ -3,6 +3,8 @@ import argparse
 import asyncio
 from api.qinglong import QlApi, QlOpenApi
 from api.send import SendApi
+import config
+from importlib import reload
 from config import (
     qinglong_data,
     user_datas,
@@ -577,11 +579,22 @@ async def get_ql_api(ql_data):
     return qlapi
 
 
+def reload_config():
+    """重新加载配置文件"""
+    global qinglong_data, user_datas
+    reload(config)
+    qinglong_data = config.qinglong_data
+    user_datas = config.user_datas
+
+
 async def main(mode: str = None):
     """
     :param mode 运行模式, 当mode = cron时，sms_func为 manual_input时，将自动传成no
     """
     try:
+        # 重新加载最新配置
+        reload_config()
+
         qlapi = await get_ql_api(qinglong_data)
         send_api = SendApi("ql")
         # 拿到禁用的用户列表
