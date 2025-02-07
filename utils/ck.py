@@ -1,5 +1,7 @@
+import asyncio
 from enum import Enum
 import json
+import random
 from utils.tools import send_request
 from typing import List, Dict, Any
 
@@ -29,6 +31,8 @@ async def check_ck(
         "Accept-Encoding": "gzip, deflate, br"
     }
     r = await send_request(url, method, headers)
+    # 检测这里太快了, sleep一会儿, 避免FK
+    await asyncio.sleep(random.uniform(0.5,2))
     return r
 
 

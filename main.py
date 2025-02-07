@@ -603,6 +603,15 @@ async def main(mode: str = None):
         except Exception as e:
             logger.error(f"检测CK任务失败, 跳过检测, 报错原因为{e}")
 
+        # 再拿一次禁用的用户列表
+        response = await qlapi.get_envs()
+        if response['code'] == 200:
+            logger.info("获取环境变量成功")
+        else:
+            logger.error(f"获取环境变量失败， response: {response}")
+            raise Exception(f"获取环境变量失败， response: {response}")
+
+        user_info = response['data']
         # 获取需强制更新pt_pin
         force_update_pt_pins = [user_datas[key]["pt_pin"] for key in user_datas if user_datas[key].get("force_update") is True]
         # 获取需强制和需要强制更新的users
