@@ -3,6 +3,7 @@ import argparse
 import asyncio
 from api.qinglong import QlApi, QlOpenApi
 from api.send import SendApi
+from utils.ck import get_invalid_ck_ids
 from config import (
     qinglong_data,
     user_datas,
@@ -594,6 +595,14 @@ async def main(mode: str = None):
 
         user_info = response['data']
 
+        try:
+            logger.info("检测CK任务开始")
+            ck_ids_data = await get_invalid_ck_ids(user_info)
+            await qlapi.envs_disable(data=ck_ids_data)
+            logger.info("检测CK任务完成")
+        except Exception as e:
+            logger.error(f"检测CK任务失败, 跳过检测, 报错原因为{e}")
+
         # 获取需强制更新pt_pin
         force_update_pt_pins = [user_datas[key]["pt_pin"] for key in user_datas if user_datas[key].get("force_update") is True]
         # 获取需强制和需要强制更新的users
@@ -608,6 +617,9 @@ async def main(mode: str = None):
 
         # 生成字典
         user_dict = get_forbidden_users_dict(filter_users_list, user_datas)
+        if not user_dict:
+            logger.info("失效的CK信息未配置在user_datas内，无需更新")
+            return
 
         # 登录JD获取pt_key
         async with async_playwright() as playwright:
