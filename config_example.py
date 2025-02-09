@@ -60,8 +60,14 @@ send_info = {
     "send_dingtalk": [
     ],
     "send_feishu": [
+    ],
+    "send_wecom_app": [
     ]
 }
+
+# 企业微信应用通道 send_wecom_app 的配置填写实例：
+# "corpid,corpsecret,touser,agentid,mediaid"
+# 其中 touser 是全体用户的话可以填 @all，mediaid 如果不填就是指消息卡片上没有图片,参考文档：http://note.youdao.com/s/HMiudGkb
 
 # sms_func为填写验信验证码的模式，有3种可选，如下：
 # no 关闭短信验证码识别
