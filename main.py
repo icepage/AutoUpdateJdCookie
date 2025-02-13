@@ -180,7 +180,7 @@ async def auto_shape(page, retry_times: int = 5):
 
         # 获取 图片的src 属性和button按键
         word_img_src = await page.locator('div.captcha_footer img').get_attribute('src')
-        button = page.locator('div.captcha_footer button.sure_btn')
+        button = page.locator('div.captcha_footer button#submit-btn')
 
         # 找到刷新按钮
         refresh_button = page.locator('.jcap_refresh')
@@ -282,15 +282,20 @@ async def auto_shape(page, retry_times: int = 5):
                 continue
 
             await asyncio.sleep(random.uniform(0, 1))
-            for char in target_list:
-                center_x = char[1][0]
-                center_y = char[1][1]
-                # 得到网页上的中心点
-                x, y = backend_top_left_x + center_x, backend_top_left_y + center_y
-                # 点击图片
-                await page.mouse.click(x, y)
-                await asyncio.sleep(random.uniform(1, 4))
-
+            try:
+                for char in target_list:
+                    center_x = char[1][0]
+                    center_y = char[1][1]
+                    # 得到网页上的中心点
+                    x, y = backend_top_left_x + center_x, backend_top_left_y + center_y
+                    # 点击图片
+                    await page.mouse.click(x, y)
+                    await asyncio.sleep(random.uniform(1, 4))
+            except IndexError:
+                logger.info(f'识别文字出错,刷新中......')
+                await refresh_button.click()
+                await asyncio.sleep(random.uniform(2, 4))
+                continue
             # 点击确定
             await button.click()
             await asyncio.sleep(random.uniform(2, 4))
