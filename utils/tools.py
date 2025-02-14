@@ -13,7 +13,7 @@ from PIL import Image
 import re
 from typing import Dict, Any
 from utils.consts import supported_colors
-
+from typing import Union, List
 
 def get_tmp_dir(tmp_dir:str = './tmp'):
     # 检查并创建 tmp 目录（如果不存在）
@@ -94,8 +94,8 @@ def get_forbidden_users_dict(users_list: list, user_datas: dict) -> dict:
     users_dict = {}
     for info in users_list:
         for key in user_datas:
-            s = 'pt_pin=' + user_datas[key]['pt_pin']
-            if s in info['value']:
+            user_pt_pin = user_datas[key]['pt_pin']
+            if user_pt_pin == extract_pt_pin(info['value']):
                 users_dict[key] = info
                 break
     return users_dict
@@ -405,3 +405,61 @@ def is_valid_verification_code(code: str):
     判断验证码格式是否正确
     """
     return bool(re.match(r"^\d{6}$", code))
+
+
+def extract_pt_pin(value: str) -> Union[str, None]:
+    """
+    用正则提取value中pt_pin的值, 返回一个pt_pin,如果返回多个或没匹配上则返回空, 支持以下几种格式:
+    pt_key=xxx;pt_pin=xxx;
+    pt_key=xxx;pt_pin="xxx";
+    pt_key=xxx;pt_pin='xxx';
+    pt_pin=xxx;pt_key=xxx;
+    pt_pin=xxx;pt_key="xxx";
+    pt_pin=xxx;pt_key='xxx';
+    """
+    pattern = r'pt_pin\s*=\s*(["\']?)([^"\';]+)\1'  # 捕获 pt_pin 的值，并匹配可能的引号
+    matches = re.findall(pattern, value)
+    # 如果找到了多个匹配或没有匹配，则返回空
+    if len(matches) == 1:
+        # 返回 pt_pin 的值
+        return matches[0][1]
+    return None
+
+
+def filter_cks(
+    env_data: List[Dict[str, Any]],
+    *,
+    status: int = None,
+    id: int = None,
+    **kwargs
+) -> List[Dict[str, Any]]:
+    """
+    过滤env_data中符合条件的字典。
+
+    :param env_data: ql环境变量数据
+    :param status: 过滤条件之一，status字段的值。
+    :param id: 过滤条件之一，id字段的值。
+    :param kwargs: 其他过滤条件。
+    :return: 符合条件的字典列表。
+    """
+    # 检查必传参数是否至少传了一个
+    if status is None and id is None and not kwargs:
+        raise ValueError("至少需要传入一个过滤条件（status、id或其他字段）。")
+
+    # 合并所有过滤条件
+    filters = {}
+    if status is not None:
+        filters["status"] = status
+    if id is not None:
+        filters["id"] = id
+    # 添加其他过滤条件
+    filters.update(kwargs)
+
+    # 过滤数据
+    filtered_list = []
+
+    for item in env_data:
+        if all(item.get(key) == value for key, value in filters.items()):
+            filtered_list.append(item)
+
+    return filtered_list

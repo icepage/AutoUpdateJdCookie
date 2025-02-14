@@ -44,7 +44,9 @@ from utils.tools import (
     ddddocr_find_bytes_pic,
     solve_slider_captcha,
     validate_proxy_config,
-    is_valid_verification_code
+    is_valid_verification_code,
+    filter_cks,
+    extract_pt_pin
 )
 
 """
@@ -598,29 +600,31 @@ async def main(mode: str = None):
             logger.error(f"获取环境变量失败， response: {response}")
             raise Exception(f"获取环境变量失败， response: {response}")
 
-        user_info = response['data']
+        env_data = response['data']
+        # 获取值为JD_COOKIE的环境变量
+        jd_ck_env_datas = filter_cks(env_data, name='JD_COOKIE')
+        # 从value中过滤出pt_pin, 注意只支持单行单pt_pin
+        jd_ck_env_datas = [ {**x, 'pt_pin': extract_pt_pin(x['value'])} for x in jd_ck_env_datas if extract_pt_pin(x['value'])]
 
         try:
             logger.info("检测CK任务开始")
-            ck_ids_data = await get_invalid_ck_ids(user_info)
-            await qlapi.envs_disable(data=ck_ids_data)
+            # 先获取启用中的env_data
+            up_jd_ck_list = filter_cks(jd_ck_env_datas, status=0, name='JD_COOKIE')
+            # 这一步会去检测这些JD_COOKIE
+            ck_ids_datas = await get_invalid_ck_ids(up_jd_ck_list)
+            if ck_ids_datas:
+                # 禁用QL的失效环境变量
+                await qlapi.envs_disable(data=ck_ids_datas)
+                # 更新jd_ck_env_datas
+                jd_ck_env_datas = [{**x, 'status': 1} for x in jd_ck_env_datas if x.get('id') in ck_ids_datas or x.get('_id') in ck_ids_datas]
             logger.info("检测CK任务完成")
         except Exception as e:
             logger.error(f"检测CK任务失败, 跳过检测, 报错原因为{e}")
 
-        # 再拿一次禁用的用户列表
-        response = await qlapi.get_envs()
-        if response['code'] == 200:
-            logger.info("获取环境变量成功")
-        else:
-            logger.error(f"获取环境变量失败， response: {response}")
-            raise Exception(f"获取环境变量失败， response: {response}")
-
-        user_info = response['data']
         # 获取需强制更新pt_pin
         force_update_pt_pins = [user_datas[key]["pt_pin"] for key in user_datas if user_datas[key].get("force_update") is True]
-        # 获取需强制和需要强制更新的users
-        forbidden_users = [x for x in user_info if x['name'] == 'JD_COOKIE' and (x['status'] == 1 or x['value'].rstrip(';').split('pt_pin=')[1] in force_update_pt_pins)]
+        # 获取禁用和需要强制更新的users
+        forbidden_users = [x for x in jd_ck_env_datas if (x['status'] == 1 or x['pt_pin'] in force_update_pt_pins)]
 
         if not forbidden_users:
             logger.info("所有COOKIE环境变量正常，无需更新")
