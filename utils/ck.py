@@ -57,6 +57,4 @@ async def get_invalid_ck_ids(env_data):
     invalid_cks_list = await get_invalid_cks(env_data)
 
     invalid_cks_id_list = [ck['id'] if 'id' in ck.keys() else ck["_id"] for ck in invalid_cks_list]
-    if invalid_cks_id_list:
-        data = bytes(json.dumps(invalid_cks_id_list), 'utf-8')
-        return data
+    return invalid_cks_id_list

@@ -86,6 +86,33 @@ async def check_notice(page):
         logger.info("登录未发现报错")
         return
 
+async def auto_move_slide_v2(page, retry_times: int = 2, slider_selector: str = 'img.move-img', move_solve_type: str = ""):
+    for i in range(retry_times):
+        logger.info(f'第{i + 1}次开启滑块验证')
+        # 查找小图
+        await page.wait_for_selector('.captcha_drop', state='visible', timeout=3000)
+        await auto_move_slide(page, retry_times=5, slider_selector = slider_selector, move_solve_type = move_solve_type)
+
+        # 判断是否一次过了滑块
+        captcha_drop_visible = await page.is_visible('.captcha_drop')
+
+        # 存在就重新滑一次
+        if captcha_drop_visible:
+            logger.info('一次过滑块失败, 再次尝试滑块验证')
+            await page.wait_for_selector('.captcha_drop', state='visible', timeout=3000)
+            # 点外键
+            sign_locator = page.locator('#header').locator('.text-header')
+            sign_locator_box = await sign_locator.bounding_box()
+            sign_locator_left_x = sign_locator_box['x']
+            sign_locator_left_y = sign_locator_box['y']
+            await page.mouse.click(sign_locator_left_x, sign_locator_left_y)
+            await asyncio.sleep(1)
+            # 提交键
+            submit_locator = page.locator('.btn.J_ping.active')
+            await submit_locator.click()
+            await asyncio.sleep(1)
+            continue
+        return
 
 async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'img.move-img', move_solve_type: str = ""):
     """
@@ -412,7 +439,7 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
     except ImportError:
         headless = False
 
-    args = '--no-sandbox', '--disable-setuid-sandbox'
+    args = '--no-sandbox', '--disable-setuid-sandbox', '--disable-software-rasterizer', '--disable-gpu'
 
     try:
         # 引入代理
@@ -502,7 +529,7 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
 
             # 自动识别移动滑块验证码
             await asyncio.sleep(1)
-            await auto_move_slide(page, retry_times=5)
+            await auto_move_slide_v2(page, retry_times=5)
 
             # 自动验证形状验证码
             await asyncio.sleep(1)
@@ -611,14 +638,16 @@ async def main(mode: str = None):
             # 先获取启用中的env_data
             up_jd_ck_list = filter_cks(jd_ck_env_datas, status=0, name='JD_COOKIE')
             # 这一步会去检测这些JD_COOKIE
-            ck_ids_datas = await get_invalid_ck_ids(up_jd_ck_list)
-            if ck_ids_datas:
+            invalid_cks_id_list = await get_invalid_ck_ids(up_jd_ck_list)
+            if invalid_cks_id_list:
                 # 禁用QL的失效环境变量
+                ck_ids_datas = bytes(json.dumps(invalid_cks_id_list), 'utf-8')
                 await qlapi.envs_disable(data=ck_ids_datas)
                 # 更新jd_ck_env_datas
-                jd_ck_env_datas = [{**x, 'status': 1} for x in jd_ck_env_datas if x.get('id') in ck_ids_datas or x.get('_id') in ck_ids_datas]
+                jd_ck_env_datas = [{**x, 'status': 1} for x in invalid_cks_id_list if x.get('id') in ck_ids_datas or x.get('_id') in ck_ids_datas]
             logger.info("检测CK任务完成")
         except Exception as e:
+            traceback.print_exc()
             logger.error(f"检测CK任务失败, 跳过检测, 报错原因为{e}")
 
         # 获取需强制更新pt_pin
