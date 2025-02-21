@@ -98,6 +98,8 @@ async def auto_move_slide_v2(page, retry_times: int = 2, slider_selector: str = 
 
         # 存在就重新滑一次
         if captcha_drop_visible:
+            if i == retry_times - 1:
+                return
             logger.info('一次过滑块失败, 再次尝试滑块验证')
             await page.wait_for_selector('.captcha_drop', state='visible', timeout=3000)
             # 点外键
