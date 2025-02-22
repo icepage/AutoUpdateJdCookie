@@ -90,7 +90,12 @@ async def auto_move_slide_v2(page, retry_times: int = 2, slider_selector: str = 
     for i in range(retry_times):
         logger.info(f'第{i + 1}次开启滑块验证')
         # 查找小图
-        await page.wait_for_selector('.captcha_drop', state='visible', timeout=3000)
+        try:
+            # 查找小图
+            await page.wait_for_selector('.captcha_drop', state='visible', timeout=3000)
+        except Exception as e:
+            logger.info('未找到验证码框, 退出滑块验证')
+            return
         await auto_move_slide(page, retry_times=5, slider_selector = slider_selector, move_solve_type = move_solve_type)
 
         # 判断是否一次过了滑块
