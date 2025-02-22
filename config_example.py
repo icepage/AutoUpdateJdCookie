@@ -70,6 +70,9 @@ send_info = {
 sms_func = "manual_input"
 sms_webhook = "https://127.0.0.1:3000/getCode"
 
+# voice_func为手机语音验证码的模式，no为关闭识别，manual_input为手动在终端输入验证码
+voice_func = "manual_input"
+
 # 代理的配置，只代理登录，不代理请求QL面板和发消息
 proxy = {
     # 代理服务器地址, 支持http, https, socks5

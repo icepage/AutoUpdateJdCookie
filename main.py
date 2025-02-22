@@ -436,6 +436,60 @@ async def sms_recognition(page, user, mode):
     logger.info('点击提交中...')
     await page.click('a.btn')
 
+
+async def voice_verification(page, user, mode):
+    from utils.consts import supported_voice_func
+    try:
+        from config import voice_func
+    except ImportError:
+        voice_func = "no"
+
+    voice_func = user_datas[user].get("voice_func", voice_func)
+
+    if voice_func not in supported_voice_func:
+        raise Exception(f"voice_func只支持{supported_voice_func}")
+
+    if mode == "cron" and voice_func == "manual_input":
+        voice_func = "no"
+
+    if voice_func == "no":
+        raise Exception("voice_func为no关闭, 跳过手机语音识别")
+
+    logger.info('点击获取验证码中')
+    await page.click('button.getMsg-btn:has-text("点击获取验证码")')
+    await asyncio.sleep(1)
+    # 自动识别滑块
+    await auto_move_slide(page, retry_times=5, slider_selector='div.bg-blue')
+    await auto_shape(page, retry_times=30)
+
+    # 识别是否成功发送验证码
+    await page.wait_for_selector('button.getMsg-btn:has-text("重新发送")', timeout=3000)
+    logger.info("发送手机语音识别验证码成功")
+
+    # 手动输入
+    # 用户在60S内，手动在终端输入验证码
+    if voice_func == "manual_input":
+        from inputimeout import inputimeout, TimeoutOccurred
+        try:
+            verification_code = inputimeout(prompt="请输入验证码：", timeout=60)
+        except TimeoutOccurred:
+            return
+
+    await asyncio.sleep(1)
+    if not is_valid_verification_code(verification_code):
+        logger.error(f"验证码需为6位数字, 输入的验证码为{verification_code}, 异常")
+        raise Exception(f"验证码异常")
+
+    logger.info('填写验证码中...')
+    verification_code_input = page.locator('input.acc-input.msgCode')
+    for v in verification_code:
+        await verification_code_input.type(v, no_wait_after=True)
+        await asyncio.sleep(random.random() / 10)
+
+    logger.info('点击提交中...')
+    await page.click('a.btn')
+
+
 async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
     """
     获取jd的pt_key
@@ -547,6 +601,11 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
             if await page.locator('text="手机短信验证"').count() != 0:
                 logger.info("开始短信验证码识别环节")
                 await sms_recognition(page, user, mode)
+
+            # 进行手机语音验证识别
+            if await page.locator('div#header .text-header:has-text("手机语音验证")').count() > 0:
+                logger.info("检测到手机语音验证页面,开始识别")
+                await voice_verification(page, user, mode)
 
             # 检查警告,如账号存在风险或账密不正确等
             await check_notice(page)
