@@ -60,6 +60,8 @@ send_info = {
     "send_dingtalk": [
     ],
     "send_feishu": [
+    ],
+    "send_pushplus": [
     ]
 }
 
