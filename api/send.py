@@ -91,3 +91,20 @@ class SendApi(object):
             }
         }
         return await send_message(url, data)
+    
+    @staticmethod
+    async def send_pushplus(url: str, msg: str) -> Dict[str, Any]:
+        """
+        发送 Pushplus 消息。
+
+        Args:
+            url (str): Pushplus 的消息接收 URL: http://www.pushplus.plus/send?token=xxxxxxxxx。
+            msg (str): 要发送的消息内容。
+
+        Returns:
+            Dict[str, Any]: 返回发送消息的结果。
+        """
+        data = {
+            "content": msg
+        }
+        return await send_message(url, data)
