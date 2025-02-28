@@ -710,7 +710,7 @@ async def main(mode: str = None):
                 ck_ids_datas = bytes(json.dumps(invalid_cks_id_list), 'utf-8')
                 await qlapi.envs_disable(data=ck_ids_datas)
                 # 更新jd_ck_env_datas
-                jd_ck_env_datas = [{**x, 'status': 1} for x in invalid_cks_id_list if x.get('id') in ck_ids_datas or x.get('_id') in ck_ids_datas]
+                jd_ck_env_datas = [{**x, 'status': 1} if x.get('id') in invalid_cks_id_list or x.get('_id') in invalid_cks_id_list else x for x in jd_ck_env_datas]
             logger.info("检测CK任务完成")
         except Exception as e:
             traceback.print_exc()
