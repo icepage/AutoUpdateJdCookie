@@ -46,7 +46,8 @@ from utils.tools import (
     validate_proxy_config,
     is_valid_verification_code,
     filter_cks,
-    extract_pt_pin
+    extract_pt_pin,
+    desensitize_account
 )
 
 """
@@ -57,6 +58,11 @@ logger.add(
     level="DEBUG"
 )
 
+try:
+    # 账号是否脱敏的开关
+    from config import enable_desensitize
+except ImportError:
+    enable_desensitize = False
 
 async def download_image(url, filepath):
     async with aiohttp.ClientSession() as session:
@@ -737,11 +743,11 @@ async def main(mode: str = None):
         # 登录JD获取pt_key
         async with async_playwright() as playwright:
             for user in user_dict:
-                logger.info(f"开始更新{user}")
+                logger.info(f"开始更新{desensitize_account(user, enable_desensitize)}")
                 pt_key = await get_jd_pt_key(playwright, user, mode)
                 if pt_key is None:
                     logger.error(f"获取pt_key失败")
-                    await send_msg(send_api, send_type=1, msg=f"{user} 更新失败")
+                    await send_msg(send_api, send_type=1, msg=f"{desensitize_account(user, enable_desensitize)} 更新失败")
                     continue
 
                 req_data = user_dict[user]
@@ -750,20 +756,20 @@ async def main(mode: str = None):
                 data = json.dumps(req_data)
                 response = await qlapi.set_envs(data=data)
                 if response['code'] == 200:
-                    logger.info(f"{user}更新成功")
+                    logger.info(f"{desensitize_account(user, enable_desensitize)}更新成功")
                 else:
-                    logger.error(f"{user}更新失败, response: {response}")
-                    await send_msg(send_api, send_type=1, msg=f"{user} 更新失败")
+                    logger.error(f"{desensitize_account(user, enable_desensitize)}更新失败, response: {response}")
+                    await send_msg(send_api, send_type=1, msg=f"{desensitize_account(user, enable_desensitize)} 更新失败")
                     continue
 
                 req_id = f"[{req_data['id']}]" if 'id' in req_data.keys() else f'[\"{req_data["_id"]}\"]'
                 data = bytes(req_id, 'utf-8')
                 response = await qlapi.envs_enable(data=data)
                 if response['code'] == 200:
-                    logger.info(f"{user}启用成功")
-                    await send_msg(send_api, send_type=0, msg=f"{user} 更新成功")
+                    logger.info(f"{desensitize_account(user, enable_desensitize)}启用成功")
+                    await send_msg(send_api, send_type=0, msg=f"{desensitize_account(user, enable_desensitize)} 更新成功")
                 else:
-                    logger.error(f"{user}启用失败, response: {response}")
+                    logger.error(f"{desensitize_account(user, enable_desensitize)}启用失败, response: {response}")
 
     except Exception as e:
         traceback.print_exc()

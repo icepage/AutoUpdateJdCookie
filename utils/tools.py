@@ -463,3 +463,28 @@ def filter_cks(
             filtered_list.append(item)
 
     return filtered_list
+
+
+def desensitize_account(account, enable_desensitize=True):
+    """
+    对传入的账号（QQ号或手机号）进行脱敏处理
+    :param account: 账号（QQ号或手机号）
+    :param enable_desensitize: 是否开启脱敏，默认为 True
+    :return: 脱敏后的账号或原账号
+    """
+    if not account or not enable_desensitize:
+        # 如果账号为空或脱敏未开启，直接返回原账号
+        return account
+
+    # 判断是否为手机号（假设手机号为11位数字）
+    if account.isdigit() and len(account) == 11:
+        # 手机号脱敏：前3后4，中间4位用*代替
+        return account[:3] + '****' + account[-4:]
+
+    # 判断是否为QQ号（假设QQ号为5位以上数字）
+    if account.isdigit() and len(account) >= 5:
+        # QQ号脱敏：前2后2，中间用*代替
+        return account[:2] + '***' + account[-2:]
+
+    # 如果不是手机号或QQ号，直接返回原账号
+    return account
