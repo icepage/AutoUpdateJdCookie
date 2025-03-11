@@ -25,6 +25,8 @@ user_datas = {
     "13500000002": {
         "password": "123456",
         "pt_pin": "123456",
+        # auto_switch设置为False时，关闭全自动过验证码，改为手动过验证码
+        "auto_switch": False
     },
 }
 
