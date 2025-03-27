@@ -131,16 +131,21 @@ async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'im
     """
     自动识别移动滑块验证码
     """
-    for i in range(retry_times):
-        logger.info(f'第{i + 1}次尝试自动移动滑块中...')
+    logger.info("开始滑块验证")
+    for i in range(retry_times + 1):
         try:
             # 查找小图
             await page.wait_for_selector('#small_img', state='visible', timeout=3000)
         except Exception as e:
             # 未找到元素，认为成功，退出循环
-            logger.info('未找到小图,退出移动滑块')
+            logger.info('未找到滑块,退出滑块验证')
             break
 
+        # 滑块验证失败了
+        if i + 1 == retry_times + 1:
+            raise Exception("滑块验证失败了")
+
+        logger.info(f'第{i + 1}次尝试自动移动滑块中...')
         # 获取 src 属性
         small_src = await page.locator('#small_img').get_attribute('src')
         background_src = await page.locator('#cpc_img').get_attribute('src')
@@ -188,6 +193,7 @@ async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'im
 
 
 async def auto_shape(page, retry_times: int = 5):
+    logger.info("开始二次验证")
     # 图像识别
     ocr = get_ocr(beta=True)
     # 文字识别
@@ -197,16 +203,20 @@ async def auto_shape(page, retry_times: int = 5):
     """
     自动识别滑块验证码
     """
-    for i in range(retry_times):
-        logger.info(f'第{i + 1}次自动识别形状中...')
+    for i in range(retry_times + 1):
         try:
             # 查找小图
             await page.wait_for_selector('div.captcha_footer img', state='visible', timeout=3000)
         except Exception as e:
             # 未找到元素，认为成功，退出循环
-            logger.info('未找到形状图,退出识别状态')
+            logger.info('未找到二次验证图,退出二次验证识别')
             break
 
+        # 二次验证失败了
+        if i + 1 == retry_times + 1:
+            raise Exception("二次验证失败了")
+
+        logger.info(f'第{i + 1}次自动识别形状中...')
         tmp_dir = get_tmp_dir()
 
         background_img_path = os.path.join(tmp_dir, f'background_img.png')
@@ -597,7 +607,7 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
             if user_datas[user].get("auto_switch", True):
                 # 自动识别移动滑块验证码
                 await asyncio.sleep(1)
-                await auto_move_slide_v2(page, retry_times=5)
+                await auto_move_slide(page, retry_times=5)
 
                 # 自动验证形状验证码
                 await asyncio.sleep(1)

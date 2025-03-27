@@ -1,5 +1,19 @@
 # aujc
 
+## 20250327
+
+提供自己训练模型，优化点选验证码通过率，aujc_trainer项目：[https://github.com/icepage/aujc_trainer](https://github.com/icepage/aujc_trainer)
+
+训练完后有onnx和charsets.json文件，docker启动可以通过挂载方式使用
+
+```python
+docker run -i \
+    -v $PWD/config.py:/app/config.py \
+    -v $PWD/myocr_v1.onnx:/app/myocr_v1.onnx \
+    -v $PWD/charsets.json:/app/charsets.json \
+    icepage/aujc:latest python main.py
+```
+
 ## 介绍
 - 用来自动化更新青龙面板的失效JD_COOKIE, 主要有三步
     - 自动检测并获取青龙面板的失效JD_COOKIE;
