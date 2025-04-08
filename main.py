@@ -506,6 +506,23 @@ async def voice_verification(page, user, mode):
     await page.click('a.btn')
 
 
+async def check_dialog(page):
+    logger.info("开始弹窗检测")
+    try:
+        # 等待 dialog 出现
+        await page.wait_for_selector(".dialog", timeout=4000)
+    except Exception as e:
+        logger.info('未找到弹框, 退出弹框检测')
+        return
+    # 获取 dialog-des 的文本内容
+    dialog_text = await page.locator(".dialog-des").text_content()
+    if dialog_text == "您的账号存在风险，为了账号安全需实名认证，是否继续？":
+        raise Exception("检测到实名认证弹窗，请前往移动端做实名认证")
+
+    else:
+        raise Exception("检测到不支持的弹窗, 更新异常")
+
+
 async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
     """
     获取jd的pt_key
@@ -623,6 +640,9 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
                 if await page.locator('div#header .text-header:has-text("手机语音验证")').count() > 0:
                     logger.info("检测到手机语音验证页面,开始识别")
                     await voice_verification(page, user, mode)
+
+                # 弹窗检测
+                await check_dialog(page)
 
                 # 检查警告,如账号存在风险或账密不正确等
                 await check_notice(page)
