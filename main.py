@@ -624,7 +624,7 @@ async def get_jd_pt_key(playwright: Playwright, user, mode) -> Union[str, None]:
             if user_datas[user].get("auto_switch", True):
                 # 自动识别移动滑块验证码
                 await asyncio.sleep(1)
-                await auto_move_slide(page, retry_times=5)
+                await auto_move_slide(page, retry_times=30)
 
                 # 自动验证形状验证码
                 await asyncio.sleep(1)
