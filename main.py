@@ -276,11 +276,14 @@ async def auto_shape(page, retry_times: int = 5):
                 continue
 
         # 这里是文字验证码了
-        elif word.find('依次') > 0:
+        elif word.find('依次') > 0 or word.find('按照次序点选') > 0:
             logger.info(f'开始文字识别,点击中......')
             # 获取文字的顺序列表
             try:
-                target_char_list = list(re.findall(r'[\u4e00-\u9fff]+', word)[1])
+                if word.find('依次') > 0:
+                    target_char_list = list(re.findall(r'[\u4e00-\u9fff]+', word)[1])
+                if word.find('按照次序点选') > 0:
+                    target_char_list = list(word.split('请按照次序点选')[1])
             except IndexError:
                 logger.info(f'识别文字出错,刷新中......')
                 await refresh_button.click()
