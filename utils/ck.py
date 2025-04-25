@@ -1,8 +1,7 @@
 import asyncio
 from enum import Enum
-import json
 import random
-from utils.tools import send_request
+from utils.tools import send_request, sanitize_header_value
 from typing import List, Any
 
 
@@ -24,7 +23,7 @@ async def check_ck(
         "Host": "me-api.jd.com",
         "Accept": "*/*",
         "Connection": "keep-alive",
-        "Cookie": cookie,
+        "Cookie": sanitize_header_value(cookie),
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36 Edg/106.0.1370.42",
         "Accept-Language": "zh-cn",
         "Referer": "https://home.m.jd.com/myJd/newhome.action?sceneval=2&ufc=&",

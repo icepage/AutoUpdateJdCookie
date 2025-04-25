@@ -488,3 +488,9 @@ def desensitize_account(account, enable_desensitize=True):
 
     # 如果不是手机号或QQ号，直接返回原账号
     return account
+
+def sanitize_header_value(value: str) -> str:
+    """
+    清除 HTTP 头部值中的换行符，防止 header 注入
+    """
+    return value.replace('\n', '').replace('\r', '').strip()
