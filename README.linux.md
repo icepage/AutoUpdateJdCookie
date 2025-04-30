@@ -20,11 +20,21 @@
 docker pull icepage/aujc:latest
 ```
 
-### 配置config.py
-- 下载本项目的config_example.py, 重命名为config.py; 
-- 配置config.py, 配置文件说明请转向 [配置文件说明](https://github.com/icepage/AutoUpdateJdCookie/blob/main/配置文件说明.md)
-- config.py的**cron_expression**参数必填;
-- config.py的**headless一定要设为True!!!!**
+### 生成config.py
+```python
+# 新建一个config.py
+touch config.py
+# 执行生成make_config.py, 记得最后要按y覆盖config.py
+docker run -i --rm \
+  -v $PWD/config.py:/app/config.py \
+  icepage/aujc python make_config.py
+```
+
+说明：
+- 执行make_config.py, 会生成config.py
+- config.py的说明请转向 [配置文件说明](https://github.com/icepage/AutoUpdateJdCookie/blob/main/配置文件说明.md)
+- Linux的**无头模式(headless)一定要设为True!!!!**
+- 如果不会python的，参考config_example.py, 自己配置一个config.py, 我们基于这个config.py运行程序;
 
 ### 手动执行
 - 2种场景下需要手动main.py
@@ -61,9 +71,17 @@ playwright install-deps
 playwright install chromium
 ```
 
-### 添加配置config.py
-- 复制config_example.py, 重命名为config.py, 我们基于这个config.py运行程序;
-- 配置config.py, 配置文件说明请转向 [配置文件说明](https://github.com/icepage/AutoUpdateJdCookie/blob/main/配置文件说明.md)
+### 生成config.py
+```python
+python make_config.py
+```
+
+说明：
+- 执行make_config.py, 会生成config.py
+- config.py的说明请转向 [配置文件说明](https://github.com/icepage/AutoUpdateJdCookie/blob/main/配置文件说明.md)
+- Linux的**无头模式(headless)一定要设为True!!!!**
+- 如果不会python的，参考config_example.py, 自己配置一个config.py, 我们基于这个config.py运行程序;
+
 
 ### 运行脚本
 #### 1、单次手动执行
