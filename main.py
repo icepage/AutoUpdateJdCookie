@@ -135,7 +135,7 @@ async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'im
     for i in range(retry_times + 1):
         try:
             # 查找小图
-            await page.wait_for_selector('#small_img', state='visible', timeout=3000)
+            await page.wait_for_selector('#slot_img', state='visible', timeout=3000)
         except Exception as e:
             # 未找到元素，认为成功，退出循环
             logger.info('未找到滑块,退出滑块验证')
@@ -147,8 +147,8 @@ async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'im
 
         logger.info(f'第{i + 1}次尝试自动移动滑块中...')
         # 获取 src 属性
-        small_src = await page.locator('#small_img').get_attribute('src')
-        background_src = await page.locator('#cpc_img').get_attribute('src')
+        small_src = await page.locator('#slot_img').get_attribute('src')
+        background_src = await page.locator('#main_img').get_attribute('src')
 
         # 获取 bytes
         small_img_bytes = get_img_bytes(small_src)
@@ -156,16 +156,16 @@ async def auto_move_slide(page, retry_times: int = 2, slider_selector: str = 'im
 
         # 保存小图
         small_img_path = save_img('small_img', small_img_bytes)
-        small_img_width = await page.evaluate('() => { return document.getElementById("small_img").clientWidth; }')  # 获取网页的图片尺寸
-        small_img_height = await page.evaluate('() => { return document.getElementById("small_img").clientHeight; }')  # 获取网页的图片尺寸
+        small_img_width = await page.evaluate('() => { return document.getElementById("slot_img").clientWidth; }')  # 获取网页的图片尺寸
+        small_img_height = await page.evaluate('() => { return document.getElementById("slot_img").clientHeight; }')  # 获取网页的图片尺寸
         small_image = Image.open(small_img_path)  # 打开图像
         resized_small_image = small_image.resize((small_img_width, small_img_height))  # 调整图像尺寸
         resized_small_image.save(small_img_path)  # 保存调整后的图像
 
         # 保存大图
         background_img_path = save_img('background_img', background_img_bytes)
-        background_img_width = await page.evaluate('() => { return document.getElementById("cpc_img").clientWidth; }')  # 获取网页的图片尺寸
-        background_img_height = await page.evaluate('() => { return document.getElementById("cpc_img").clientHeight; }')  # 获取网页的图片尺寸
+        background_img_width = await page.evaluate('() => { return document.getElementById("main_img").clientWidth; }')  # 获取网页的图片尺寸
+        background_img_height = await page.evaluate('() => { return document.getElementById("main_img").clientHeight; }')  # 获取网页的图片尺寸
         background_image = Image.open(background_img_path)  # 打开图像
         resized_background_image = background_image.resize((background_img_width, background_img_height))  # 调整图像尺寸
         resized_background_image.save(background_img_path)  # 保存调整后的图像
@@ -406,7 +406,7 @@ async def sms_recognition(page, user, mode):
     await page.click('button.getMsg-btn')
     await asyncio.sleep(1)
     # 自动识别滑块
-    await auto_move_slide(page, retry_times=5, slider_selector='div.bg-blue')
+    await auto_move_slide(page, retry_times=5, slider_selector='#slider')
     await auto_shape(page, retry_times=30)
 
     # 识别是否成功发送验证码
@@ -478,7 +478,7 @@ async def voice_verification(page, user, mode):
     await page.click('button.getMsg-btn:has-text("点击获取验证码")')
     await asyncio.sleep(1)
     # 自动识别滑块
-    await auto_move_slide(page, retry_times=5, slider_selector='div.bg-blue')
+    await auto_move_slide(page, retry_times=5, slider_selector='#slider')
     await auto_shape(page, retry_times=30)
 
     # 识别是否成功发送验证码
