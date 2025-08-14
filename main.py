@@ -406,7 +406,7 @@ async def sms_recognition(page, user, mode):
     await page.click('button.getMsg-btn')
     await asyncio.sleep(1)
     # 自动识别滑块
-    await auto_move_slide(page, retry_times=5, slider_selector='#slider')
+    await auto_move_slide(page, retry_times=5)
     await auto_shape(page, retry_times=30)
 
     # 识别是否成功发送验证码
@@ -416,6 +416,7 @@ async def sms_recognition(page, user, mode):
     # 手动输入
     # 用户在60S内，手动在终端输入验证码
     if sms_func == "manual_input":
+        logger.info("启用手动输入验证码模式")
         from inputimeout import inputimeout, TimeoutOccurred
         try:
             verification_code = inputimeout(prompt="请输入验证码：", timeout=60)
@@ -424,6 +425,7 @@ async def sms_recognition(page, user, mode):
 
     # 通过调用web_hook的方式来实现全自动输入验证码
     elif sms_func == "webhook":
+        logger.info("启用webhook获取验证码模式")
         from utils.tools import send_request
         try:
             from config import sms_webhook
