@@ -108,3 +108,21 @@ class SendApi(object):
             "content": msg
         }
         return await send_message(url, data)
+
+    @staticmethod
+    async def send_serverchan(url: str, msg: str) -> Dict[str, Any]:
+        """
+        发送 Server酱 消息。
+
+        Args:
+            url (str): Server酱 的消息接收 URL: https://sctapi.ftqq.com/xxxxxxxxx.send。
+            msg (str): 要发送的消息内容。
+
+        Returns:
+            Dict[str, Any]: 返回发送消息的结果。
+        """
+        data = {
+            "title": "自动更新京东Cookie通知",
+            "desp": msg
+        }
+        return await send_message(url, data)

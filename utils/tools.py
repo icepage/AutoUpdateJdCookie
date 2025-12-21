@@ -494,3 +494,125 @@ def sanitize_header_value(value: str) -> str:
     清除 HTTP 头部值中的换行符，防止 header 注入
     """
     return value.replace('\n', '').replace('\r', '').strip()
+
+
+def ddddocr_find_files_pic_v2(target_file, background_file) -> dict:
+    """
+    比对文件获取滚动长度
+    """
+    with open(target_file, 'rb') as f:
+        target_bytes = f.read()
+    with open(background_file, 'rb') as f:
+        background_bytes = f.read()
+    target = ddddocr_find_bytes_pic_v2(target_bytes, background_bytes)
+    return target
+
+def ddddocr_find_bytes_pic_v2(target_bytes, background_bytes) -> dict:
+    """
+    比对bytes获取获取整个target列表
+    """
+    det = ddddocr.DdddOcr(det=False, ocr=False, show_ad=False)
+    res = det.slide_match(target_bytes, background_bytes, simple_target=True)
+    return res
+
+
+def crop_center_contour(image_path, output_path, min_area=100, padding=10):
+    """
+    通过轮廓检测找到最接近图片中心的对象并裁剪
+
+    参数:
+        image_path: 输入图片路径
+        output_path: 输出图片路径
+        min_area: 最小轮廓面积阈值，过滤掉噪点
+        padding: 裁剪时添加的边距
+    """
+    # 读取图片
+    img = cv2.imread(image_path)
+    if img is None:
+        print(f"无法读取图片: {image_path}")
+        return None
+
+    height, width = img.shape[:2]
+    center_x, center_y = width // 2, height // 2
+
+    # 转换为灰度图
+    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # 应用高斯模糊减少噪声
+    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+
+    # 使用自适应阈值或Canny边缘检测
+    # 方法1: Canny边缘检测
+    edges = cv2.Canny(blurred, 50, 150)
+
+    # 方法2: 自适应阈值（可选，取消注释使用）
+    # thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+    #                                cv2.THRESH_BINARY_INV, 11, 2)
+
+    # 形态学操作，连接边缘
+    kernel = np.ones((3, 3), np.uint8)
+    closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel, iterations=2)
+    dilated = cv2.dilate(closed, kernel, iterations=1)
+
+    # 找到所有轮廓
+    contours, _ = cv2.findContours(dilated, cv2.RETR_EXTERNAL,
+                                   cv2.CHAIN_APPROX_SIMPLE)
+
+    if not contours:
+        # 未检测到任何轮廓
+        return None
+
+    # 过滤掉面积太小的轮廓
+    valid_contours = [cnt for cnt in contours if cv2.contourArea(cnt) > min_area]
+
+    if not valid_contours:
+        # 未检测到面积大于 {min_area} 的轮廓
+        return None
+
+    # 找到最接近中心的轮廓
+    min_distance = float('inf')
+    best_contour = None
+    best_rect = None
+
+    for cnt in valid_contours:
+        # 获取轮廓的边界矩形
+        x, y, w, h = cv2.boundingRect(cnt)
+
+        # 计算轮廓中心点
+        contour_center_x = x + w // 2
+        contour_center_y = y + h // 2
+
+        # 计算到图片中心的距离
+        distance = np.sqrt((contour_center_x - center_x) ** 2 +
+                           (contour_center_y - center_y) ** 2)
+
+        if distance < min_distance:
+            min_distance = distance
+            best_contour = cnt
+            best_rect = (x, y, w, h)
+
+    if best_rect is None:
+        # 未找到合适的轮廓"
+        return None
+
+    x, y, w, h = best_rect
+
+    # 添加边距
+    x = max(0, x - padding)
+    y = max(0, y - padding)
+    w = min(width - x, w + 2 * padding)
+    h = min(height - y, h + 2 * padding)
+
+    # 裁剪图片
+    cropped = img[y:y + h, x:x + w]
+
+    # 保存结果
+    cv2.imwrite(output_path, cropped)
+
+    # print(f"成功裁剪最接近中心的对象")
+    # print(f"轮廓中心距离图片中心: {min_distance:.2f} 像素")
+    # print(f"裁剪区域: ({x}, {y}) 到 ({x + w}, {y + h})")
+    # print(f"裁剪尺寸: {w} x {h}")
+    # print(f"已保存到: {output_path}")
+
+    return cropped

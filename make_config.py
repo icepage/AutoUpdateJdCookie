@@ -114,6 +114,7 @@ def collect_send_info():
         ("send_dingtalk", "钉钉"),
         ("send_feishu", "飞书"),
         ("send_pushplus", "PushPlus"),
+        ("send_serverchan", "Server酱"),
     ]
 
     for key, display in services:

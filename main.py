@@ -242,6 +242,38 @@ async def auto_shape(page, retry_times: int = 5):
         word_img_bytes = get_img_bytes(word_img_src)
         rgba_word_img_path = save_img('rgba_word_img', word_img_bytes)
 
+        # 图像识别的解法，东哥求放过啊，写不动了
+        if page.locator("div.sp_msg.tip_text", has_text="请点击上图中的").is_visible():
+            logger.info("检测为图像, 开始图像识别......")
+            from utils.tools import crop_center_contour, ddddocr_find_files_pic_v2
+            small_img_path = os.path.join(tmp_dir, f'small_img.png')
+            # 这里是一个标准算法偏差
+            slide_difference = 10
+
+            try:
+                # 将中间的图截取出来，才能更好的识别
+                result = crop_center_contour(rgba_word_img_path, small_img_path, min_area=100, padding=1)
+                if result is None:
+                    raise IndexError("截图异常")
+                # 获取要移动的长度
+                target_dict = ddddocr_find_files_pic_v2(small_img_path, background_img_path)
+                # 提取坐标
+                x1, y1, x2, y2 = target_dict["target"]
+                center_x = (x1 + slide_difference + x2) // 2
+                center_y = (y1 + y2) // 2
+                await asyncio.sleep(random.uniform(0, 1))
+
+                logger.info("已检测到图像，尝试点击中")
+                x, y = backend_top_left_x + center_x, backend_top_left_y + center_y
+                # 点击图片
+                await page.mouse.click(x, y)
+            except IndexError:
+                logger.info(f'识别图像出错,刷新中......')
+                await refresh_button.click()
+
+            await asyncio.sleep(random.uniform(2, 4))
+            continue
+
         # 文字图是RGBA的，有蒙板识别不了，需要转成RGB
         rgb_word_img_path = rgba2rgb('rgb_word_img', rgba_word_img_path)
 

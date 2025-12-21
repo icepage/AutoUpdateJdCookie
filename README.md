@@ -81,7 +81,16 @@ docker run -i -v $PWD/config.py:/app/config.py icepage/aujc:latest python main.p
 docker run -v $PWD/config.py:/app/config.py icepage/aujc:latest
 ```
 
-## 2、本地部署
+## 2、青龙 Debian 容器内一键安装
+
+- 仅测试 **whyour/qinglong:debian**
+- 支持 ARM64 和 AMD64 架构
+````shell
+bash <(curl -fsSL "https://raw.githubusercontent.com/icepage/AutoUpdateJdCookie/main/AutoUpdateJdCookie_install.sh")
+````
+
+
+## 3、本地部署
 ### 安装依赖
 ```commandline
 pip install -r requirements.txt
