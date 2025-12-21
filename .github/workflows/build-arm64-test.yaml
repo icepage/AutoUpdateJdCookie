@@ -22,7 +22,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build arm64
         run: |
-          docker build --no-cache -t nuoyis/aujc .
-          docker push nuoyis/aujc:arm64
-          docker tag nuoyis/aujc:arm64 registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:arm64
+          docker build --no-cache -t nuoyis1024/aujc .
+          docker push nuoyis1024/aujc:arm64
+          docker tag nuoyis1024/aujc:arm64 registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:arm64
           docker push registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:arm64
