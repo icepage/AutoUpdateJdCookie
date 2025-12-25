@@ -1,9 +1,10 @@
-name: Auto Tag, Branch and Release
+name: arm64 autobuild
 
 on:
   push:
     branches:
-      - main
+      # - main
+      - test
   workflow_dispatch: # 支持手动触发
 
 permissions:
