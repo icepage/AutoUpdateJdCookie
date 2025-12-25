@@ -1,4 +1,4 @@
-name: Auto Tag, Branch and Release
+name: amd64 and arm64 autobuild
 
 on:
   push:
