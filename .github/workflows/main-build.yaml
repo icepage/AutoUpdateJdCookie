@@ -39,6 +39,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Build arm64
         run: |
+          sed -i '/RUN playwright install chromium/{N;s/\(RUN playwright install chromium\nRUN playwright install-deps\)/RUN playwright install-deps\nRUN playwright install chromium/}' Dockerfile
           docker build --no-cache -t nuoyis1024/aujc:arm64 .
           docker push nuoyis1024/aujc:arm64
           docker tag nuoyis1024/aujc:arm64 registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:arm64
