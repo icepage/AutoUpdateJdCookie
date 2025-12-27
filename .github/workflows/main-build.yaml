@@ -1,0 +1,69 @@
+name: amd64 and arm64 autobuild
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # 支持手动触发
+  
+permissions:
+  contents: write
+
+jobs:
+  build-amd64:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to aliyunHub
+        run: docker login --username=${{ secrets.ALIYUN_DOCKER_USERNAME }} --password=${{ secrets.ALIYUN_DOCKER_PASSWORD }} registry.cn-hangzhou.aliyuncs.com
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build amd64
+        run: |
+          docker build --no-cache -t nuoyis1024/aujc:amd64 .
+          docker push nuoyis1024/aujc:amd64
+          docker tag nuoyis1024/aujc:amd64 registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:amd64
+          docker push registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:amd64
+
+  build-arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to aliyunHub
+        run: docker login --username=${{ secrets.ALIYUN_DOCKER_USERNAME }} --password=${{ secrets.ALIYUN_DOCKER_PASSWORD }} registry.cn-hangzhou.aliyuncs.com
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build arm64
+        run: |
+          sed -i '/RUN playwright install chromium/{N;s/\(RUN playwright install chromium\nRUN playwright install-deps\)/RUN playwright install-deps\nRUN playwright install chromium/}' Dockerfile
+          docker build --no-cache -t nuoyis1024/aujc:arm64 .
+          docker push nuoyis1024/aujc:arm64
+          docker tag nuoyis1024/aujc:arm64 registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:arm64
+          docker push registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:arm64
+
+  create-manifest:
+    runs-on: ubuntu-latest
+    needs: [build-amd64, build-arm64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to aliyunHub
+        run: docker login --username=${{ secrets.ALIYUN_DOCKER_USERNAME }} --password=${{ secrets.ALIYUN_DOCKER_PASSWORD }} registry.cn-hangzhou.aliyuncs.com
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Create & Push Multi-arch Manifest
+        run: |
+          docker manifest create nuoyis1024/aujc:latest \
+            --amend nuoyis1024/aujc:amd64 \
+            --amend nuoyis1024/aujc:arm64
+          docker manifest push nuoyis1024/aujc:latest
+          docker manifest create registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:latest \
+            --amend registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:amd64 \
+            --amend registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:arm64
+          docker manifest push registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:latest

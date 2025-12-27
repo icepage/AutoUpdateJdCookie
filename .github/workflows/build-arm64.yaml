@@ -1,0 +1,30 @@
+name: arm64 autobuild
+
+on:
+  push:
+    branches:
+      # - main
+      - test
+  workflow_dispatch: # 支持手动触发
+
+permissions:
+  contents: write
+
+jobs:
+  build-arm64:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to aliyunHub
+        run: docker login --username=${{ secrets.ALIYUN_DOCKER_USERNAME }} --password=${{ secrets.ALIYUN_DOCKER_PASSWORD }} registry.cn-hangzhou.aliyuncs.com
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build arm64
+        run: |
+          sed -i '/RUN playwright install chromium/{N;s/\(RUN playwright install chromium\nRUN playwright install-deps\)/RUN playwright install-deps\nRUN playwright install chromium/}' Dockerfile
+          docker build --no-cache -t nuoyis1024/aujc:arm64 .
+          docker push nuoyis1024/aujc:arm64
+          docker tag nuoyis1024/aujc:arm64 registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:arm64
+          docker push registry.cn-hangzhou.aliyuncs.com/nuoyis/aujc:arm64
